@@ -37,7 +37,7 @@ S32Bit FP_device_read_data(U8Bit *data, size_t length, U32Bit timeout)
 }
 
 /* write data */
-S32Bit FP_device_write_data(U8Bit *data, size_t length)
+void FP_device_write_data(U8Bit *data, size_t length)
 {
 	fingerDevice.write(data,length);
 }

@@ -8,17 +8,11 @@ extern "C" {
 
 #ifdef ENABLE_DEBUG_FINGER
 HardwareSerial Log(DEBUG_PORT); 
-#define LOG(X) {logTimePrint(); Log.println( X );}
-#define LOG2(X,Y) { logTimePrint(); Log.print( X ); Log.println( Y ); }
-#define LOG3(X,Y,Z) {logTimePrint(); Log.print( X ); Log.print( Y ); Log.println( Z );}
+#define LOG(X) { Log.println( X );}
 #define LOGF(...) Log.printf( __VA_ARGS__ );
-#define LOGA(X,Y,Z) logTimePrintAscii(X,Y,Z);
 #else
 #define LOG(...);
-#define LOG2(...);
-#define LOG3(...);
 #define LOGF(...);
-#define LOGA(...);
 #endif // DEBUG
 
 typedef  struct 

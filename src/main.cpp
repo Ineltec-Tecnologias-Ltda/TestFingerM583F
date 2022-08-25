@@ -1,19 +1,9 @@
 #include <Arduino.h>
-#include "fingerprint_device.h"
 #include <WiFi.h>
-#include "fingerprint_action.h"
-#include "fingerprint_type.h"
-#include "fingerprint_protocol.h"
+#include "fingerprint_commands.h"
+#include "fingerprint_device.h"
 #include <iostream>
 
-const char *ssid = "FingerTests";
-const char *password = "123456789";
-const char *EnrollOk = "Enroll OK";
-const char *Enrolling = "Enrolling...";
-const char *TimeoutError = "Timeout Error...";
-const char *TryAgain = "Please Try Again";
-
-const char *errorMessage;
 
 // Set web server port number to 80
 WiFiServer server(80);
@@ -21,6 +11,7 @@ WiFiServer server(80);
 String header;
 
 HardwareSerial Log(DEBUG_PORT);
+
 
 void setup()
 {
@@ -69,7 +60,8 @@ void loop()
             }
             else if (header.indexOf("Match") >= 0)
             {
-              matchTemplate();
+              if ( matchTemplate())
+                 Log.println("Match ok");
             }
             else if (header.indexOf("Upload") >= 0)
             {
@@ -120,113 +112,6 @@ void loop()
     header = "";
     // Close the connection
     client.stop();
-    Serial.println("Client disconnected.");
-    Serial.println("");
+    Log.println("Client disconnected.");
   }
-}
-
-bool autoEnroll()
-{
-  U32Bit errorCode = 0;
-  S32Bit ret = 0;
-  U8Bit enroll_mode;
-  U8Bit times;
-  U16Bit slotID;
-
-  // enrollPara.enroll_mode = 0x01 will indicate that user must lift finger and press again during enrollment
-  // enrollPara.times is the number of presses (can be set to 1~6 times)
-  // enrollPara.slotID = 0xFFFF ,will be automatically assigned by the system
-  const FP_auto_enroll_t enrollPara = FP_auto_enroll_t{1, 6, 0xFFFF};
-  FP_enrollResult_p pEnrollResult;
- 
-  int8_t retry = 3;
-  bool start = true;
-
-  while (retry-- > 0)
-  {
-    if (start)
-    {
-      ret = FP_action_auto_enroll_send(enrollPara);
-      if (FP_OK == ret)
-      {
-        retry = 6; // max 6 enroll updates
-        start = false;
-      }
-      else
-        Log.printf("Error: %d  retry: %d", ret, retry);
-    }
-    else
-    {
-      ret = FP_action_auto_enroll_recv(pEnrollResult);
-      if (ret == FP_OK)
-      {
-        Log.printf("State: %d    Enroll Progress: %d %\r\n", pEnrollResult->state, pEnrollResult->progress);
-        if ((100 == pEnrollResult->progress) && (pEnrollResult->state == 0xff))
-        {
-          Log.printf("Template slot: %d\r\n", pEnrollResult->slotID);
-          errorMessage = EnrollOk;
-          return true;
-        }
-        else
-          errorMessage = Enrolling;
-      }
-      else
-      {
-        errorMessage = TryAgain;
-        Log.print("Enroll Error: ");
-        Log.println(errorCode);
-        return false;
-      }
-    }
-  }
-  Log.print("Timeout Error");
-  errorMessage = TimeoutError;
-
-  return false;
-}
-
-void matchTemplate()
-{
-  U32Bit errorCode;
-  S32Bit ret;
-  int8_t retry = 100;
-  FP_matchResult_t matchResult;
-  bool start = true;
-
-  while (retry-- > 0)
-  {
-    if (start)
-    {
-      ret = FP_action_match_start();
-      if (ret == FP_OK)
-      {
-        retry = 10;
-        start = false;
-        vTaskDelay(200);
-      }
-      else
-        vTaskDelay(50);
-    }
-    else
-    {
-      ret = FP_action_get_match_result(&matchResult);
-      if (FP_DEVICE_TIMEOUT_ERROR == ret)
-        vTaskDelay(100);
-      else
-      {
-        if (ret != FP_OK)
-        {
-          Log.printf("Match Error: %d\r\n", ret);
-          return;
-        }
-
-        if (matchResult.isPass == 1)
-        {
-          Log.printf("Match ok: %d\r\n", matchResult.slotID);
-          return;
-        }
-      }
-    }
-  Log.print("Timeout Error");
-  errorMessage = TimeoutError;
 }

@@ -4,95 +4,93 @@
 #include "fingerprint_action.h"
 
 #ifdef ENABLE_DEBUG_FINGER
-HardwareSerial	Log(DEBUG_PORT);
+HardwareSerial Log(DEBUG_PORT);
 #endif
-
 
 typedef enum command_type
 {
-    cmd_automatic   = 0x00,
+    cmd_automatic = 0x00,
     cmd_fingerprint = 0x01,
-    cmd_system      = 0x02,
+    cmd_system = 0x02,
     cmd_maintenance = 0x03
-}FP_cmd_type;
+} FP_cmd_type;
 
 typedef enum automatic_type_word
 {
-    fp_automatic_enroll    = 0x03, //users manual page 22
-}FP_automatic_cmd_word;
+    fp_automatic_enroll = 0x03, // users manual page 22
+} FP_automatic_cmd_word;
 
 typedef enum fingerprint_type_word
 {
-    fp_capture_start       = 0x01, //Not in users manual
-    fp_capture_result      = 0x02,  //Not in users manual
-    
-    fp_enroll_start        = 0x11,
-    fp_enroll_result       = 0x12,
-    fp_enroll_save_start   = 0x13,
-    fp_enroll_save_result  = 0x14,
-    fp_enroll_cancel       = 0x15,
-    
-    fp_update_start        = 0x16,
-    fp_update_result       = 0x17,
+    fp_capture_start = 0x01,  // Not in users manual
+    fp_capture_result = 0x02, // Not in users manual
 
-    fp_auto_enroll         = 0x18,
-    
-    fp_match_start         = 0x21,
-    fp_match_result        = 0x22,
-    fp_match_sync          = 0x23,
+    fp_enroll_start = 0x11,
+    fp_enroll_result = 0x12,
+    fp_enroll_save_start = 0x13,
+    fp_enroll_save_result = 0x14,
+    fp_enroll_cancel = 0x15,
 
-    fp_delete_start        = 0x31,
-    fp_delete_result       = 0x32,
-    fp_is_fp_id_exist      = 0x33,
-    fp_get_all_slots_status= 0x34,
-    fp_query_slot_status   = 0x35,
+    fp_update_start = 0x16,
+    fp_update_result = 0x17,
 
-    fp_delete_templates    = 0x36,
+    fp_auto_enroll = 0x18,
+
+    fp_match_start = 0x21,
+    fp_match_result = 0x22,
+    fp_match_sync = 0x23,
+
+    fp_delete_start = 0x31,
+    fp_delete_result = 0x32,
+    fp_is_fp_id_exist = 0x33,
+    fp_get_all_slots_status = 0x34,
+    fp_query_slot_status = 0x35,
+
+    fp_delete_templates = 0x36,
 
     fp_enroll_verify_start = 0x41,
-    fp_enroll_verify_result= 0x42,
+    fp_enroll_verify_result = 0x42,
     fp_start_send_template = 0x51,
-    fp_send_template_data  = 0x52,
-    fp_start_get_template  = 0x53,
-    fp_get_template_data  = 0x54,
+    fp_send_template_data = 0x52,
+    fp_start_get_template = 0x53,
+    fp_get_template_data = 0x54,
 
-}FP_fp_cmd_word;
+} FP_fp_cmd_word;
 
 typedef enum system_command_word
 {
-    sys_set_passwd         = 0x01,
-    sys_reset              = 0x02,
-    sys_get_nb_templates   = 0x03,  //Obtain the number of fingerprint templates
-    sys_set_gain           = 0x08,
-    sys_get_gain           = 0x09,
-    sys_set_thresholds     = 0x0A,//set matching thresholds
-    sys_get_thresholds     = 0x0B,//Obtain matching thresholds
-    sys_sleep              = 0x0C,
-    sys_set_enroll_max_num = 0x0D,  // Setting range (1~6)
-    sys_set_led            = 0x0F,
-    sys_get_policys        = 0xFB, //Get System Policy Send Format Table
-    sys_set_policys        = 0xFC  //Set System Policy Send Format Table
-}FP_sys_cmd_word;
+    sys_set_passwd = 0x01,
+    sys_reset = 0x02,
+    sys_get_nb_templates = 0x03, // Obtain the number of fingerprint templates
+    sys_set_gain = 0x08,
+    sys_get_gain = 0x09,
+    sys_set_thresholds = 0x0A, // set matching thresholds
+    sys_get_thresholds = 0x0B, // Obtain matching thresholds
+    sys_sleep = 0x0C,
+    sys_set_enroll_max_num = 0x0D, // Setting range (1~6)
+    sys_set_led = 0x0F,
+    sys_get_policys = 0xFB, // Get System Policy Send Format Table
+    sys_set_policys = 0xFC  // Set System Policy Send Format Table
+} FP_sys_cmd_word;
 
 typedef enum maintenance_command_word
 {
-    maintenance_read_id          = 0x01,
-    maintenance_set_id           = 0x02,
-    maintenance_heart_beat       = 0x03,
-    maintenance_set_baudrate     = 0x04,
-    maintenance_set_com_passwd   = 0x05
-}FP_mtnce_cmd_word;
+    maintenance_read_id = 0x01,
+    maintenance_set_id = 0x02,
+    maintenance_heart_beat = 0x03,
+    maintenance_set_baudrate = 0x04,
+    maintenance_set_com_passwd = 0x05
+} FP_mtnce_cmd_word;
 
-
-static const U8Bit s_forhead[8] = {0xF1,0x1F,0xE2,0x2E,0xB6,0x6B,0xA8,0x8A};
+static const U8Bit s_forhead[8] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A};
 
 //���͵����ݳ���
 static U32Bit FP_protocol_get_data_area_length(FP_send_p send)
 {
     U32Bit len = 0;
-    if(cmd_fingerprint == (FP_cmd_type)(send->cmd_type)) 
+    if (cmd_fingerprint == (FP_cmd_type)(send->cmd_type))
     {
-        switch((FP_fp_cmd_word)(send->cmd_word)) 
+        switch ((FP_fp_cmd_word)(send->cmd_word))
         {
         case fp_capture_start:
             len = 2;
@@ -149,10 +147,10 @@ static U32Bit FP_protocol_get_data_area_length(FP_send_p send)
             len = 0;
             break;
         }
-    } 
-    else if(cmd_system == (FP_cmd_type)(send->cmd_type)) 
+    }
+    else if (cmd_system == (FP_cmd_type)(send->cmd_type))
     {
-        switch((FP_sys_cmd_word)(send->cmd_word)) 
+        switch ((FP_sys_cmd_word)(send->cmd_word))
         {
         case sys_set_passwd:
             len = 4;
@@ -182,10 +180,10 @@ static U32Bit FP_protocol_get_data_area_length(FP_send_p send)
             len = 1;
             break;
         }
-    } 
-    else if(cmd_maintenance == (FP_cmd_type)(send->cmd_type)) 
+    }
+    else if (cmd_maintenance == (FP_cmd_type)(send->cmd_type))
     {
-        switch((FP_mtnce_cmd_word)(send->cmd_word)) 
+        switch ((FP_mtnce_cmd_word)(send->cmd_word))
         {
         case maintenance_read_id:
             len = 0;
@@ -212,25 +210,25 @@ static U32Bit FP_protocol_get_recv_data_length(FP_recv_p recv)
 {
     U16Bit length = recv->frame_head.length;
     length = (U32Bit)(*(U8Bit *)&length) * 0x100 + *((U8Bit *)&length + 1);
-    
+
     return length - (sizeof(FP_recv_t) - sizeof(FP_frame_head_t)) - 1;
 }
 
-static U8Bit FP_protocol_get_checksum(U8Bit * data, U32Bit length)
+static U8Bit FP_protocol_get_checksum(U8Bit *data, U32Bit length)
 {
     U32Bit i = 0;
     S8Bit sum = 0;
-    
-    for(i = 0; i < length; i++)
+
+    for (i = 0; i < length; i++)
         sum += data[i];
 
-    return (U8Bit)((~sum)+1);
+    return (U8Bit)((~sum) + 1);
 }
 
 static S32Bit FP_protocol_checkout_recv_head_checksum(FP_frame_head_p head)
 {
     U8Bit checksum = FP_protocol_get_checksum((U8Bit *)head, sizeof(FP_frame_head_t) - 1);
-    if(*((U8Bit *)head + sizeof(FP_frame_head_t) - 1) != checksum)
+    if (*((U8Bit *)head + sizeof(FP_frame_head_t) - 1) != checksum)
         return FP_PROTOCOL_UART_HEAD_CHECKSUM_ERROR;
     else
         return FP_OK;
@@ -239,13 +237,13 @@ static S32Bit FP_protocol_checkout_recv_head_checksum(FP_frame_head_p head)
 static S32Bit FP_protocol_checkout_recv_data_checksum(FP_recv_p recv)
 {
     U8Bit checksum;
-    
+
     U16Bit length = recv->frame_head.length;
     length = (U32Bit)(*(U8Bit *)&length) * 0x100 + *((U8Bit *)&length + 1);
-    
+
     checksum = FP_protocol_get_checksum((U8Bit *)recv + sizeof(FP_frame_head_t), length - 1);
-    
-    if(*((U8Bit *)recv + sizeof(FP_frame_head_t) + length - 1) != checksum)
+
+    if (*((U8Bit *)recv + sizeof(FP_frame_head_t) + length - 1) != checksum)
         return FP_PROTOCOL_DATA_CHECKSUM_ERROR;
     else
         return FP_OK;
@@ -270,7 +268,7 @@ static S32Bit FP_protocol_checkout_recv_data_checksum(FP_recv_p recv)
  |
                                                                                       |
  | <<-----------------------------     FP_send_t    --------------------------------->> |
- |                                                                                      | 
+ |                                                                                      |
  ----------------------------------------------------------------------------------------
 */
 
@@ -280,16 +278,16 @@ static void FP_protocol_get_frame_head(FP_frame_head_p head, unsigned short leng
      * forhead
      */
     U32Bit i = 0;
-    for(i = 0; i < 8; i++)
+    for (i = 0; i < 8; i++)
     {
-        *((U8Bit*)head->forhead + i) = *(s_forhead + i);
+        *((U8Bit *)head->forhead + i) = *(s_forhead + i);
     }
 
     /*
      * length
      */
-    *((U8Bit *) &head->length) = length/0x100;
-    *((U8Bit *) &head->length + 1) = length%0x100;
+    *((U8Bit *)&head->length) = length / 0x100;
+    *((U8Bit *)&head->length + 1) = length % 0x100;
 
     /*
      * checksum
@@ -297,38 +295,37 @@ static void FP_protocol_get_frame_head(FP_frame_head_p head, unsigned short leng
     head->checksum = FP_protocol_get_checksum((U8Bit *)head, sizeof(FP_frame_head_t) - 1);
 }
 
-
 static S32Bit FP_protocol_get_complete_send_frame(FP_send_p send, FP_data_area_t data_area)
-{   
-    U16Bit data_area_len, frame_data_len; 
+{
+    U16Bit data_area_len, frame_data_len;
     U32Bit i;
-    U8Bit  *p;
-    
+    U8Bit *p;
+
     data_area_len = FP_protocol_get_data_area_length(send);
-    if(data_area.length != data_area_len)
+    if (data_area.length != data_area_len)
         return FP_PROTOCOL_SEND_DATA_LENGTH_ERROR;
 
     /* FP_frame_head_t */
     frame_data_len = data_area_len + sizeof(FP_send_t) - sizeof(FP_frame_head_t) + 1;
     FP_protocol_get_frame_head((FP_frame_head_p)send, frame_data_len);
- 
+
     /* pwd */
     send->pwd = 0x00;
 
     /* data_area */
-    p = (U8Bit*)send + sizeof(FP_send_t);
-    if(data_area.data != 0 && data_area.length!= 0)
+    p = (U8Bit *)send + sizeof(FP_send_t);
+    if (data_area.data != 0 && data_area.length != 0)
     {
-        for(i = 0; i < data_area.length; i++)
+        for (i = 0; i < data_area.length; i++)
         {
             *(p + i) = *(data_area.data + i);
         }
     }
 
     /* check sum */
-    p = (U8Bit*)send;
-    *(p + sizeof(FP_send_t) + data_area.length)  = FP_protocol_get_checksum(p + sizeof(FP_frame_head_t), frame_data_len - 1);
-    
+    p = (U8Bit *)send;
+    *(p + sizeof(FP_send_t) + data_area.length) = FP_protocol_get_checksum(p + sizeof(FP_frame_head_t), frame_data_len - 1);
+
     return FP_OK;
 }
 
@@ -345,7 +342,7 @@ S32Bit FP_protocol_get_fp_enroll_start_frame(FP_send_p send, U8Bit index)
 
     data_area.data = &idx;
     data_area.length = 1;
-    
+
     return FP_protocol_get_complete_send_frame(send, data_area);
 }
 
@@ -353,24 +350,24 @@ S32Bit FP_protocol_get_fp_enroll_result_frame(FP_send_p send)
 {
 
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_enroll_result;
 
     data_area.data = 0;
     data_area.length = 0;
-    
+
     return FP_protocol_get_complete_send_frame(send, data_area);
 }
 
 S32Bit FP_protocol_get_fp_enroll_save_start_frame(FP_send_p send, U16Bit id)
 {
     FP_data_area_t data_area;
-    
+
     U8Bit buff[2];
-    
-    buff[0] = id/0x100;
-    buff[1] = id%0x100;
+
+    buff[0] = id / 0x100;
+    buff[1] = id % 0x100;
 
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_enroll_save_start;
@@ -397,7 +394,7 @@ S32Bit FP_protocol_get_fp_enroll_save_result_frame(FP_send_p send)
 S32Bit FP_protocol_get_fp_enroll_cancel_frame(FP_send_p send)
 {
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_enroll_cancel;
 
@@ -410,7 +407,7 @@ S32Bit FP_protocol_get_fp_enroll_cancel_frame(FP_send_p send)
 S32Bit FP_protocol_get_fp_match_start_frame(FP_send_p send)
 {
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_match_start;
 
@@ -423,7 +420,7 @@ S32Bit FP_protocol_get_fp_match_start_frame(FP_send_p send)
 S32Bit FP_protocol_get_fp_match_result_frame(FP_send_p send)
 {
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_match_result;
 
@@ -438,15 +435,15 @@ S32Bit FP_protocol_get_fp_delete_start_frame(FP_send_p send, S16Bit id)
     U8Bit buff[3];
     FP_data_area_t data_area;
 
-    if(id < 0) 
+    if (id < 0)
     {
         buff[0] = 0x01;
-    } 
-    else 
+    }
+    else
     {
         buff[0] = 0x00;
-        buff[1] = id/0x100;
-        buff[2] = id%0x100;
+        buff[1] = id / 0x100;
+        buff[2] = id % 0x100;
     }
 
     send->cmd_type = cmd_fingerprint;
@@ -461,7 +458,7 @@ S32Bit FP_protocol_get_fp_delete_start_frame(FP_send_p send, S16Bit id)
 S32Bit FP_protocol_get_fp_delete_result_frame(FP_send_p send)
 {
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_delete_result;
 
@@ -476,9 +473,9 @@ S32Bit FP_protocol_get_fp_is_id_exist_frame(FP_send_p send, U16Bit id)
     U8Bit buff[2];
     FP_data_area_t data_area;
 
-    buff[0] = id/0x100;
-    buff[1] = id%0x100;
-    
+    buff[0] = id / 0x100;
+    buff[1] = id % 0x100;
+
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_is_fp_id_exist;
 
@@ -491,7 +488,7 @@ S32Bit FP_protocol_get_fp_is_id_exist_frame(FP_send_p send, U16Bit id)
 S32Bit FP_protocol_get_fp_store_info_frame(FP_send_p send)
 {
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_get_all_slots_status;
 
@@ -504,7 +501,7 @@ S32Bit FP_protocol_get_fp_store_info_frame(FP_send_p send)
 S32Bit FP_protocol_get_fp_is_touch_sensor_frame(FP_send_p send)
 {
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_query_slot_status;
 
@@ -517,7 +514,7 @@ S32Bit FP_protocol_get_fp_is_touch_sensor_frame(FP_send_p send)
 S32Bit FP_protocol_get_fp_enroll_verify_start_frame(FP_send_p send)
 {
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_enroll_verify_start;
 
@@ -530,7 +527,7 @@ S32Bit FP_protocol_get_fp_enroll_verify_start_frame(FP_send_p send)
 S32Bit FP_protocol_get_fp_enroll_verify_result_frame(FP_send_p send)
 {
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_enroll_verify_result;
 
@@ -540,13 +537,13 @@ S32Bit FP_protocol_get_fp_enroll_verify_result_frame(FP_send_p send)
     return FP_protocol_get_complete_send_frame(send, data_area);
 }
 
-/* 
+/*
  * get system frame
  */
 S32Bit FP_protocol_get_sys_get_count_frame(FP_send_p send)
 {
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_system;
     send->cmd_word = sys_get_nb_templates;
 
@@ -559,7 +556,7 @@ S32Bit FP_protocol_get_sys_get_count_frame(FP_send_p send)
 S32Bit FP_protocol_get_sys_reset_frame(FP_send_p send)
 {
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_system;
     send->cmd_word = sys_reset;
 
@@ -569,20 +566,19 @@ S32Bit FP_protocol_get_sys_reset_frame(FP_send_p send)
     return FP_protocol_get_complete_send_frame(send, data_area);
 }
 
-
 S32Bit FP_protocol_get_sys_sleep_frame(FP_send_p send, FP_sleep_type type)
 {
     U8Bit buff[1];
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_system;
     send->cmd_word = sys_sleep;
 
-    if(sleep_type_normal == type) 
+    if (sleep_type_normal == type)
     {
         buff[0] = 0x00;
     }
-    else if(sleep_type_deep == type)
+    else if (sleep_type_deep == type)
     {
         buff[0] = 0x01;
     }
@@ -593,18 +589,16 @@ S32Bit FP_protocol_get_sys_sleep_frame(FP_send_p send, FP_sleep_type type)
     return FP_protocol_get_complete_send_frame(send, data_area);
 }
 
-
 /*
- * 
+ *
  */
 S32Bit FP_protocol_get_fp_update_start_frame(FP_send_p send, S16Bit updateID)
 {
     U8Bit buff[2];
     FP_data_area_t data_area;
- 
-    buff[0] = updateID/0x100;
-    buff[1] = updateID%0x100;
-    
+
+    buff[0] = updateID / 0x100;
+    buff[1] = updateID % 0x100;
 
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_update_start;
@@ -616,12 +610,12 @@ S32Bit FP_protocol_get_fp_update_start_frame(FP_send_p send, S16Bit updateID)
 }
 
 /*
- * 
+ *
  */
 S32Bit FP_protocol_get_fp_update_result_frame(FP_send_p send)
 {
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_update_result;
 
@@ -631,8 +625,7 @@ S32Bit FP_protocol_get_fp_update_result_frame(FP_send_p send)
     return FP_protocol_get_complete_send_frame(send, data_area);
 }
 
-
-S32Bit FP_protocol_fp_auto_enroll_frame(FP_send_p send , FP_auto_enroll_t enrollPara)
+S32Bit FP_protocol_fp_auto_enroll_frame(FP_send_p send, FP_auto_enroll_t enrollPara)
 {
     FP_data_area_t data_area;
     send->cmd_type = cmd_fingerprint;
@@ -643,7 +636,6 @@ S32Bit FP_protocol_fp_auto_enroll_frame(FP_send_p send , FP_auto_enroll_t enroll
 
     return FP_protocol_get_complete_send_frame(send, data_area);
 }
-
 
 S32Bit FP_protocol_fp_match_syn_frame(FP_send_p send)
 {
@@ -658,13 +650,12 @@ S32Bit FP_protocol_fp_match_syn_frame(FP_send_p send)
     return FP_protocol_get_complete_send_frame(send, data_area);
 }
 
-
-S32Bit FP_protocol_fp_delete_syn_frame(FP_send_p send , S16Bit id)
+S32Bit FP_protocol_fp_delete_syn_frame(FP_send_p send, S16Bit id)
 {
     FP_data_area_t data_area;
     U8Bit buff[3];
 
-    if(id < 0)
+    if (id < 0)
     {
         buff[0] = 1;
     }
@@ -684,15 +675,13 @@ S32Bit FP_protocol_fp_delete_syn_frame(FP_send_p send , S16Bit id)
     return FP_protocol_get_complete_send_frame(send, data_area);
 }
 
-
-
 /*
  * get maintenance frame
  */
 S32Bit FP_protocol_get_mtnce_read_id_frame(FP_send_p send)
 {
     FP_data_area_t data_area;
-    
+
     send->cmd_type = cmd_maintenance;
     send->cmd_word = maintenance_read_id;
 
@@ -702,36 +691,35 @@ S32Bit FP_protocol_get_mtnce_read_id_frame(FP_send_p send)
     return FP_protocol_get_complete_send_frame(send, data_area);
 }
 
-S32Bit FP_protocol_send_mesg(FP_send_p send, U32Bit timeout)
+void FP_protocol_send_msg(FP_send_p send, U32Bit timeout)
 {
-    U32Bit length = sizeof(FP_send_t) + FP_protocol_get_data_area_length(send) + 1;
+    size_t length = sizeof(FP_send_t) + FP_protocol_get_data_area_length(send) + 1;
 
-    return FP_device_write_data((unsigned char *)send, length);
+    FP_device_write_data((unsigned char *)send, length);
 }
 
 static S32Bit FP_protocol_recv_forhead(FP_recv_p recv, U32Bit timeout)
 {
     S32Bit ret;
-    U8Bit * p = (U8Bit *)recv;
+    U8Bit *p = (U8Bit *)recv;
     U32Bit i = 0;
 
-    while(1)
+    while (1)
     {
-        for(i = 0; i < sizeof(s_forhead); i++)
+        for (i = 0; i < sizeof(s_forhead); i++)
         {
-            if(FP_OK != (ret = FP_device_read_one_byte(p + i, timeout)))
+            if (FP_OK != (ret = FP_device_read_one_byte(p + i, timeout)))
                 return ret;
-            else if(*(p + i) != s_forhead[i])
+            else if (*(p + i) != s_forhead[i])
                 break;
         }
 
-        if(sizeof(s_forhead) == i)
+        if (sizeof(s_forhead) == i)
             break;
     }
 
     return FP_OK;
 }
-
 
 /*
  --------------------------------------------------------------------------------------------------------------------
@@ -752,7 +740,7 @@ static S32Bit FP_protocol_recv_forhead(FP_recv_p recv, U32Bit timeout)
  |
                                                                                       |
  | <<-----------------------------     FP_send_t    --------------------------------->> |
- |                                                                                      | 
+ |                                                                                      |
  ----------------------------------------------------------------------------------------
 
 
@@ -775,10 +763,9 @@ static S32Bit FP_protocol_recv_forhead(FP_recv_p recv, U32Bit timeout)
  |
                                                                                                   |
  | <<-----------------------------------     FP_recv_t    --------------------------------------->> |
- |                                                                                                  | 
+ |                                                                                                  |
  ----------------------------------------------------------------------------------------------------
 */
-
 
 S32Bit FP_protocol_recv_complete_frame(FP_recv_p recv, FP_data_area_p data_area, U32Bit timeout)
 {
@@ -786,37 +773,36 @@ S32Bit FP_protocol_recv_complete_frame(FP_recv_p recv, FP_data_area_p data_area,
     U32Bit frame_data_length = 0, tmp_len = 0;
 
     /* forhead */
-    if(FP_OK != (ret = FP_protocol_recv_forhead(recv, timeout)))
-        return ret;
+    ret = FP_protocol_recv_forhead(recv, timeout);
+    if (ret == FP_OK)
+    {
+        /* FP_frame_head_t */
+        ret = FP_device_read_data((U8Bit *)recv + sizeof(s_forhead),
+                                  sizeof(FP_frame_head_t) - sizeof(s_forhead), timeout);
+        if (FP_OK == ret)
+        {
+            /* frame_head checksum */
+            ret = FP_protocol_checkout_recv_head_checksum((FP_frame_head_p)recv);
+            if (FP_OK == ret)
+            {
+                /* length */
+                tmp_len = recv->frame_head.length;
+                frame_data_length = (U32Bit)(*(U8Bit *)&tmp_len) * 0x100 + *((U8Bit *)&tmp_len + 1);
 
-    /* FP_frame_head_t */
-    ret = FP_device_read_data((U8Bit *)recv + sizeof(s_forhead), \
-        sizeof(FP_frame_head_t) - sizeof(s_forhead), timeout);
-    if(FP_OK != ret)
-        return ret;
-
-    /* frame_head checksum */
-    ret = FP_protocol_checkout_recv_head_checksum((FP_frame_head_p)recv);
-    if(FP_OK != ret)
-        return ret;
-
-    /* length */
-    tmp_len = recv->frame_head.length;
-    frame_data_length = (U32Bit)(*(U8Bit *)&tmp_len) * 0x100 + *((U8Bit *)&tmp_len + 1);
-
-    /* FP_recv_t and data_area and check sum */
-    ret = FP_device_read_data((U8Bit *)recv + sizeof(FP_frame_head_t), frame_data_length, timeout);
-    if(FP_OK != ret)
-        return ret;
-
-    /*second checksum */ 
-    ret = FP_protocol_checkout_recv_data_checksum(recv);
-    if(FP_OK != ret)
-        return ret;
-
-    data_area->data = (U8Bit *)recv + sizeof(FP_recv_t);
-    data_area->length = FP_protocol_get_recv_data_length(recv);
-
-    return FP_OK;
+                /* FP_recv_t and data_area and check sum */
+                ret = FP_device_read_data((U8Bit *)recv + sizeof(FP_frame_head_t), frame_data_length, timeout);
+                if (FP_OK == ret)
+                {
+                    /*second checksum */
+                    ret = FP_protocol_checkout_recv_data_checksum(recv);
+                    if (FP_OK == ret)
+                    {
+                        data_area->data = (U8Bit *)recv + sizeof(FP_recv_t);
+                        data_area->length = FP_protocol_get_recv_data_length(recv);
+                    }
+                }
+            }
+        }
+    }
+    return ret;
 }
-
