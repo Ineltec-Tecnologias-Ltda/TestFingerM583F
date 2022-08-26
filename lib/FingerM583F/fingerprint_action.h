@@ -9,6 +9,9 @@
 extern "C" {   
 #endif
 
+extern U8Bit rxData[128];
+extern FP_data_area_t bufferRx;
+
 typedef struct {
     U8Bit * ID;
     U32Bit length;
@@ -32,6 +35,7 @@ typedef struct {
     U16Bit slotID;
 } FP_matchResult_t, *FP_matchResult_p;
 
+void Heartbeat();
 void FP_action_set_send_buffer(U8Bit *buffer);
 void FP_action_set_recv_buffer(U8Bit *buffer);
 
@@ -44,7 +48,7 @@ S32Bit FP_protocol_fp_delete_syn_frame(FP_send_p send , S16Bit id);
 /* 
  * module ID
  */
-S32Bit FP_action_getID(FP_moduleID_p moduleID, U32Bit * errorCode);
+FP_data_area_t FP_action_getID();
 
 /*
  * finger touch

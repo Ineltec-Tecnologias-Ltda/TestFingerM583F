@@ -427,9 +427,6 @@
                 ]
             },
             "defines": [
-                "ENABLE_DEBUG_FINGER",
-                "DEBUG_PORT=1",
-                "FINGER_PORT=1",
                 "PLATFORMIO=60104",
                 "ARDUINO_ESP32_DEV",
                 "HAVE_CONFIG_H",

@@ -595,18 +595,17 @@ S32Bit FP_protocol_get_sys_sleep_frame(FP_send_p send, FP_sleep_type type)
 S32Bit FP_protocol_get_fp_update_start_frame(FP_send_p send, S16Bit updateID)
 {
     U8Bit buff[2];
-    FP_data_area_t data_area;
-
+   
     buff[0] = updateID / 0x100;
     buff[1] = updateID % 0x100;
 
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_update_start;
 
-    data_area.data = buff;
-    data_area.length = 2;
+    bufferRx.data = rxData;
+    bufferRx.length = 2;
 
-    return FP_protocol_get_complete_send_frame(send, data_area);
+    return FP_protocol_get_complete_send_frame(send, bufferRx);
 }
 
 /*
@@ -614,45 +613,40 @@ S32Bit FP_protocol_get_fp_update_start_frame(FP_send_p send, S16Bit updateID)
  */
 S32Bit FP_protocol_get_fp_update_result_frame(FP_send_p send)
 {
-    FP_data_area_t data_area;
-
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_update_result;
 
-    data_area.data = 0;
-    data_area.length = 0;
+    bufferRx.data = rxData;
+    bufferRx.length = 0;
 
-    return FP_protocol_get_complete_send_frame(send, data_area);
+    return FP_protocol_get_complete_send_frame(send, bufferRx);
 }
 
 S32Bit FP_protocol_fp_auto_enroll_frame(FP_send_p send, FP_auto_enroll_t enrollPara)
 {
-    FP_data_area_t data_area;
+   
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_auto_enroll;
 
-    data_area.data = (U8Bit *)&enrollPara;
-    data_area.length = sizeof(FP_auto_enroll_t);
+    bufferRx.data = (U8Bit *)&enrollPara;
+    bufferRx.length = sizeof(FP_auto_enroll_t);
 
-    return FP_protocol_get_complete_send_frame(send, data_area);
+    return FP_protocol_get_complete_send_frame(send, bufferRx);
 }
 
 S32Bit FP_protocol_fp_match_syn_frame(FP_send_p send)
 {
-    FP_data_area_t data_area;
-
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_match_sync;
 
-    data_area.data = 0;
-    data_area.length = 0;
+    bufferRx.data =rxData;
+    bufferRx.length = 0;
 
-    return FP_protocol_get_complete_send_frame(send, data_area);
+    return FP_protocol_get_complete_send_frame(send, bufferRx);
 }
 
 S32Bit FP_protocol_fp_delete_syn_frame(FP_send_p send, S16Bit id)
 {
-    FP_data_area_t data_area;
     U8Bit buff[3];
 
     if (id < 0)
@@ -669,10 +663,10 @@ S32Bit FP_protocol_fp_delete_syn_frame(FP_send_p send, S16Bit id)
     send->cmd_type = cmd_fingerprint;
     send->cmd_word = fp_delete_templates;
 
-    data_area.data = buff;
-    data_area.length = 3;
+    bufferRx.data = rxData;
+    bufferRx.length = 3;
 
-    return FP_protocol_get_complete_send_frame(send, data_area);
+    return FP_protocol_get_complete_send_frame(send, bufferRx);
 }
 
 /*
@@ -680,18 +674,16 @@ S32Bit FP_protocol_fp_delete_syn_frame(FP_send_p send, S16Bit id)
  */
 S32Bit FP_protocol_get_mtnce_read_id_frame(FP_send_p send)
 {
-    FP_data_area_t data_area;
-
     send->cmd_type = cmd_maintenance;
     send->cmd_word = maintenance_read_id;
 
-    data_area.data = 0;
-    data_area.length = 0;
+    bufferRx.data = rxData;
+    bufferRx.length = 0;
 
-    return FP_protocol_get_complete_send_frame(send, data_area);
+    return FP_protocol_get_complete_send_frame(send, bufferRx);
 }
 
-void FP_protocol_send_msg(FP_send_p send, U32Bit timeout)
+void FP_protocol_send_mesg(FP_send_p send, U32Bit timeout)
 {
     size_t length = sizeof(FP_send_t) + FP_protocol_get_data_area_length(send) + 1;
 

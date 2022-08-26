@@ -1,8 +1,10 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include "fingerprint_commands.h"
+#include "fingerprint_action.h"
 #include "fingerprint_device.h"
 #include <iostream>
+
 
 
 // Set web server port number to 80
@@ -10,7 +12,7 @@ WiFiServer server(80);
 // Variable to store the HTTP request
 String header;
 
-HardwareSerial Log(DEBUG_PORT);
+HardwareSerial Log(0);
 
 
 void setup()
@@ -70,6 +72,16 @@ void loop()
             else if (header.indexOf("Download") >= 0)
             {
                Log.println("Download");
+            }else if (header.indexOf("Heartbeat") >= 0)
+            {
+               Log.println("Heartbeat");
+            }else if (header.indexOf("Module Id") >= 0)
+            {
+               Log.println("Module Id");
+               FP_action_getID();
+            }else if (header.indexOf("Leds") >= 0)
+            {
+               Log.println("Leds");
             }
 
             // Display the HTML web page
@@ -85,11 +97,18 @@ void loop()
             client.println('  <a href="Enroll"><button class=\"button\">Enroll</button></a><br><br>');
 
             client.println('<div class="btn-group">');
+            client.println(' <a href="Heartbeat"><button class="button">Heartbeat</button></a>');
+            client.println(' <a href="Leds"><button class="button">Leds</button></a>');
+            client.println('<a href="Module Id"><button class="button">Module Id</button></a>');
+            client.println('</div>');
+
+            client.println('<div class="btn-group">');
             client.println(' <a href="Match"><button class="button">Match</button></a>');
             client.println(' <a href="Upload"><button class="button">Upload</button></a>');
             client.println('<a href="Download"><button class="button">Download</button></a>');
             client.println('</div>');
 
+ 
             client.println("</body></html>");
 
             // The HTTP response ends with another blank line

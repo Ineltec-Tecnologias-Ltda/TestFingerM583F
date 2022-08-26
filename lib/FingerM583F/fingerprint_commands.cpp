@@ -111,7 +111,7 @@ bool matchTemplate()
             {
                 if (ret != FP_OK)
                 {
-                    Log.printf("Match Error: %d\r\n", ret);
+                    LOGF("Match Error: %d\r\n", ret);
                     errorCode = ret;
                     return false;
                 }
@@ -129,3 +129,4 @@ bool matchTemplate()
         errorCode = FP_DEVICE_TIMEOUT_ERROR;
         return false;
     }
+}

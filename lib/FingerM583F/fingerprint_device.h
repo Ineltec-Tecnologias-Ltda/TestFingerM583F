@@ -1,6 +1,8 @@
+#include <Arduino.h>
 
 #ifndef FINGERPRINT_DEVICE_H
 #define FINGERPRINT_DEVICE_H
+#define FINGER_PORT 0
 
 #include "fingerprint_type.h"
 

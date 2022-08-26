@@ -1,3 +1,4 @@
+#include "fingerprint_type.h"
 
 extern const char *errorMessage;
 extern   U16Bit slotID;
