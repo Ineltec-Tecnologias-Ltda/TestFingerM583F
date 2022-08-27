@@ -84,13 +84,13 @@ typedef enum maintenance_command_word
 
 static const U8Bit s_forhead[8] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A};
 
-//���͵����ݳ���
-static U32Bit FP_protocol_get_data_area_length(FP_send_p send)
+
+static U32Bit FP_protocol_get_data_area_length(U8Bit type, U8Bit command)
 {
     U32Bit len = 0;
-    if (cmd_fingerprint == (FP_cmd_type)(send->cmd_type))
+    if (cmd_fingerprint == type)
     {
-        switch ((FP_fp_cmd_word)(send->cmd_word))
+        switch  (command)
         {
         case fp_capture_start:
             len = 2;
@@ -148,9 +148,9 @@ static U32Bit FP_protocol_get_data_area_length(FP_send_p send)
             break;
         }
     }
-    else if (cmd_system == (FP_cmd_type)(send->cmd_type))
+    else if (cmd_system == type)
     {
-        switch ((FP_sys_cmd_word)(send->cmd_word))
+        switch (command)
         {
         case sys_set_passwd:
             len = 4;
@@ -181,9 +181,9 @@ static U32Bit FP_protocol_get_data_area_length(FP_send_p send)
             break;
         }
     }
-    else if (cmd_maintenance == (FP_cmd_type)(send->cmd_type))
+    else if (cmd_maintenance == type)
     {
-        switch ((FP_mtnce_cmd_word)(send->cmd_word))
+        switch  switch (command)
         {
         case maintenance_read_id:
             len = 0;
@@ -301,7 +301,7 @@ static S32Bit FP_protocol_get_complete_send_frame(FP_send_p send, FP_data_area_t
     U32Bit i;
     U8Bit *p;
 
-    data_area_len = FP_protocol_get_data_area_length(send);
+    data_area_len = FP_protocol_get_data_area_length(send.);
     if (data_area.length != data_area_len)
         return FP_PROTOCOL_SEND_DATA_LENGTH_ERROR;
 
@@ -683,7 +683,7 @@ S32Bit FP_protocol_get_mtnce_read_id_frame(FP_send_p send)
     return FP_protocol_get_complete_send_frame(send, bufferRx);
 }
 
-void FP_protocol_send_mesg(FP_send_p send, U32Bit timeout)
+void FP_protocol_send_command(FP_send_p send, U32Bit timeout)
 {
     size_t length = sizeof(FP_send_t) + FP_protocol_get_data_area_length(send) + 1;
 

@@ -19,31 +19,31 @@ typedef  struct
 {
     U8Bit  *data;
     U32Bit length;
-}__attribute__ ((packed)) FP_data_area_t, *FP_data_area_p;
+} FP_data_area_t;
 
 typedef  struct 
 {
     U8Bit  forhead[8]= {0xF1,0x1F,0xE2,0x2E,0xB6,0x6B,0xA8,0x8A};
     U16Bit length=0;
     U8Bit  checksum=0;
-}__attribute__ ((packed)) FP_frame_head_t, *FP_frame_head_p;
+} FP_frame_head_t;
 
 typedef  struct 
 {
     FP_frame_head_t frame_head{};
-    U32Bit pwd;
+    U8Bit pwd[4]={0,0,0,0};
     U8Bit  cmd_type;
     U8Bit  cmd_word;
-}__attribute__ ((packed))FP_send_t, *FP_send_p;
+} FP_send_t;
 
 typedef  struct 
 {
     FP_frame_head_t frame_head;
-    U32Bit pwd;
+      U8Bit pwd[4]={0,0,0,0};
     U8Bit  cmd_type;
     U8Bit  cmd_word;
     U8Bit  error_code[4];
-}__attribute__ ((packed)) FP_recv_t, *FP_recv_p;
+}FP_recv_t;
 
 typedef enum
 {
@@ -166,7 +166,7 @@ S32Bit FP_protocol_get_mtnce_read_id_frame(FP_send_p send);
 S32Bit FP_protocol_get_fp_is_id_exist_frame(FP_send_p send, U16Bit id);
 
 /* send mesg */
-void FP_protocol_send_mesg(FP_send_p send, U32Bit timeout);
+void FP_protocol_send_command(FP_send_p send, U32Bit timeout);
 S32Bit FP_protocol_send_delete_mesg(FP_send_p send, S32Bit id_len, U32Bit timeout);
 
 /* recv complete frame */

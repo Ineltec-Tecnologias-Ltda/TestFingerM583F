@@ -11,5 +11,7 @@ extern const char *Enrolling;
 extern const char *TimeoutError;
 extern const char *TryAgain;
 
+bool heartbeat();
+char* readId();
 bool autoEnroll();
 bool matchTemplate();

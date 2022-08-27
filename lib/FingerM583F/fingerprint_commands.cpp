@@ -15,6 +15,37 @@ const char *Enrolling = "Enrolling...";
 const char *TimeoutError = "Timeout Error...";
 const char *TryAgain = "Please Try Again";
 
+///Tests if Finger Module is responsive
+bool heartbeat()
+{}
+
+char * readId()
+{
+    bufferRx = FP_data_area_t{rxData, 0};
+
+    U32Bit ret;
+
+    /* get a frame to send */
+    ret = FP_protocol_get_mtnce_read_id_frame(s_send_p);
+    if (FP_OK == ret)
+    {
+        /* send */
+        FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
+
+        /* receive the responce frame */
+        ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
+        if (FP_OK == ret)
+        {
+            /* get the useful data */
+            rxData[bufferRx.length] = 0;
+            LOGF("Module Id: %s\r\n", rxData);
+            return true;
+        }
+    }
+    return false;
+}
+
+
 /// Returns true if match ok, and sets slotId with template position inside finger module
 // otherwise sets errorCode and errorMessage
 bool autoEnroll()
@@ -124,9 +155,9 @@ bool matchTemplate()
                 }
             }
         }
-        LOG("Timeout Error");
-        errorMessage = TimeoutError;
-        errorCode = FP_DEVICE_TIMEOUT_ERROR;
-        return false;
     }
+    LOG("Timeout Error");
+    errorMessage = TimeoutError;
+    errorCode = FP_DEVICE_TIMEOUT_ERROR;
+    return false;
 }

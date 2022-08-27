@@ -87,26 +87,26 @@ void loop()
             // Display the HTML web page
             client.println("<!DOCTYPE html><html>");
 
-            client.println('<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}');
+            client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
 
-            client.println('text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}');
-            client.println('.button2 {background-color: #555555;}</style></head>');
-            client.println('<body><h1 style="color:Tomato;">Finger M583F Server</h1>');
+            client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
+            client.println(".button2 {background-color: #555555;}</style></head>");
+            client.println("<body><h1 style=\"color:Tomato;\">Finger M583F Server</h1>");
 
-            client.println('<input type="text" id="fname" name="fname">');
-            client.println('  <a href="Enroll"><button class=\"button\">Enroll</button></a><br><br>');
+            client.println("<input type=\"text\" id=\"fname\" name=\"fname\">");
+            client.println("  <a href=\"Enroll\"><button class=\"button\">Enroll</button></a><br><br>");
 
-            client.println('<div class="btn-group">');
-            client.println(' <a href="Heartbeat"><button class="button">Heartbeat</button></a>');
-            client.println(' <a href="Leds"><button class="button">Leds</button></a>');
-            client.println('<a href="Module Id"><button class="button">Module Id</button></a>');
-            client.println('</div>');
+            client.println("<div class=\"btn-group\">");
+            client.println(" <a href=\"Heartbeat\"><button class=\"button\">Heartbeat</button></a>");
+            client.println(" <a href=\"Leds\"><button class=\"button\">Leds</button></a>");
+            client.println("<a href=\"Module Id\"><button class=\"button\">Module Id</button></a>");
+            client.println("</div>");
 
-            client.println('<div class="btn-group">');
-            client.println(' <a href="Match"><button class="button">Match</button></a>');
-            client.println(' <a href="Upload"><button class="button">Upload</button></a>');
-            client.println('<a href="Download"><button class="button">Download</button></a>');
-            client.println('</div>');
+            client.println("<div class=\"btn-group\">");
+            client.println(" <a href=\"Match\"><button class=\"button\">Match</button></a>");
+            client.println(" <a href=\"Upload\"><button class=\"button\">Upload</button></a>");
+            client.println("<a href=\"Download\"><button class=\"button\">Download</button></a>");
+            client.println("</div>");
 
  
             client.println("</body></html>");

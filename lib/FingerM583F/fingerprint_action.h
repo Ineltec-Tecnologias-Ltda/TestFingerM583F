@@ -35,7 +35,6 @@ typedef struct {
     U16Bit slotID;
 } FP_matchResult_t, *FP_matchResult_p;
 
-void Heartbeat();
 void FP_action_set_send_buffer(U8Bit *buffer);
 void FP_action_set_recv_buffer(U8Bit *buffer);
 

@@ -5,7 +5,7 @@
 
 FP_send_t sendHeader = FP_send_t{};
 FP_recv_t recvHeader = FP_recv_t{};
-static FP_send_p s_send_p = &sendHeader;
+ s_send_p = &sendHeader;
 static FP_recv_p s_recv_p = &recvHeader;
 U8Bit rxData[128];
 FP_data_area_t bufferRx = FP_data_area_t{rxData, 0};
@@ -42,7 +42,7 @@ FP_data_area_t FP_action_getID()
     if (FP_OK == ret)
     {
         /* send */
-        FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+        FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
 
         /* receive the responce frame */
         ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
@@ -57,30 +57,6 @@ FP_data_area_t FP_action_getID()
 }
 
 
-void Heartbeat()
-{
-    bufferRx = FP_data_area_t{rxData, 0};
-
-    U32Bit ret;
-
-    /* get a frame to send */
-    ret = FP_protocol_get_mtnce_read_id_frame(s_send_p);
-    if (FP_OK == ret)
-    {
-        /* send */
-        FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
-
-        /* receive the responce frame */
-        ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
-        if (FP_OK == ret)
-        {
-            /* get the useful data */
-            rxData[bufferRx.length] = 0;
-            LOGF("Module Id: %s\r\n", rxData);
-        }
-    }
-}
-
 S32Bit FP_action_check_finger_is_touch(U8Bit *isTouch, U32Bit *errorCode)
 {
   
@@ -90,7 +66,7 @@ S32Bit FP_action_check_finger_is_touch(U8Bit *isTouch, U32Bit *errorCode)
     if (FP_OK != ret)
         return ret;
 
-    FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+    FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
 
     ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
     if (FP_OK != ret)
@@ -111,7 +87,7 @@ S32Bit FP_action_enroll_start(U8Bit index, U32Bit *errorCode)
     if (FP_OK != ret)
         return ret;
 
-    FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+    FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
 
     ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
     if (FP_OK != ret)
@@ -130,7 +106,7 @@ S32Bit FP_action_get_enroll_result(FP_enrollResult_p enrollResult, U32Bit *error
     if (FP_OK != ret)
         return ret;
 
-    FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+    FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
 
     ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
     if (FP_OK != ret)
@@ -151,7 +127,7 @@ S32Bit FP_action_save_start(S16Bit id, U32Bit *errorCode)
     if (FP_OK != ret)
         return ret;
 
-    FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+    FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
 
     ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
     if (FP_OK != ret)
@@ -170,7 +146,7 @@ S32Bit FP_action_get_save_result(U32Bit *errorCode, U16Bit *SaveID)
     if (FP_OK != ret)
         return ret;
 
-    FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+    FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
 
     ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
     if (FP_OK != ret)
@@ -190,7 +166,7 @@ S32Bit FP_action_match_start()
     ret = FP_protocol_get_fp_match_start_frame(s_send_p);
     if (FP_OK == ret)
     {
-        FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+        FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
         ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
         if (FP_OK == ret)
             ret = FP_action_get_errorCode(s_recv_p->error_code);
@@ -205,7 +181,7 @@ S32Bit FP_action_get_match_result(FP_matchResult_p matchResult)
     ret = FP_protocol_get_fp_match_result_frame(s_send_p);
     if (FP_OK == ret)
     {
-        FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+        FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
 
         ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
         if (FP_OK != ret)
@@ -227,7 +203,7 @@ S32Bit FP_action_delete_start(S16Bit id, U32Bit *errorCode)
     if (FP_OK != ret)
         return ret;
 
-    FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+    FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
 
     ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
     if (FP_OK != ret)
@@ -246,7 +222,7 @@ S32Bit FP_action_get_delete_result(U32Bit *errorCode)
     if (FP_OK != ret)
         return ret;
 
-    FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+    FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
 
     ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
     if (FP_OK != ret)
@@ -264,7 +240,7 @@ S32Bit FP_action_sleep(FP_sleep_type type)
     ret = FP_protocol_get_sys_sleep_frame(s_send_p, type);
     if (FP_OK == ret)
     {
-        FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+        FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
         ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
         if (FP_OK == ret)
             ret = FP_action_get_errorCode(s_recv_p->error_code);
@@ -279,7 +255,7 @@ S32Bit FP_action_reset(U32Bit *errorCode)
     if (FP_OK != ret)
         return ret;
 
-    FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+    FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
 
     ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
     if (FP_OK != ret)
@@ -297,7 +273,7 @@ S32Bit FP_action_update_start(S16Bit updateID)
     ret = FP_protocol_get_fp_update_start_frame(s_send_p, updateID);
     if (FP_OK == ret)
     {
-        FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+        FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
         if (FP_OK == ret)
         {
             ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
@@ -315,7 +291,7 @@ S32Bit FP_action_get_update_result()
     ret = FP_protocol_get_fp_update_result_frame(s_send_p);
     if (FP_OK == ret)
     {
-        FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+        FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
         if (FP_OK == ret)
         {
             ret = FP_protocol_recv_complete_frame(s_recv_p, &bufferRx, DEFAULT_TIME_OUT);
@@ -332,7 +308,7 @@ S32Bit FP_action_auto_enroll_send(FP_auto_enroll_t enrollPara)
 
     ret = FP_protocol_fp_auto_enroll_frame(s_send_p, enrollPara);
     if (FP_OK == ret)
-        FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+        FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
     return ret;
 }
 
@@ -357,7 +333,7 @@ S32Bit FP_action_match_syn_send(void)
 
     ret = FP_protocol_fp_match_syn_frame(s_send_p);
     if (FP_OK == ret)
-        FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+        FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
     return ret;
 }
 
@@ -384,7 +360,7 @@ S32Bit FP_action_delete_syn_send(S16Bit id)
     if (FP_OK != ret)
         return ret;
 
-    FP_protocol_send_mesg(s_send_p, DEFAULT_TIME_OUT);
+    FP_protocol_send_command(s_send_p, DEFAULT_TIME_OUT);
 
     return FP_OK;
 }
