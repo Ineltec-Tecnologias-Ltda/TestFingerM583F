@@ -2,13 +2,14 @@
 #include "fingerprint_protocol.h"
 #include <Arduino.h>
 
+HardwareSerial fingerDevice(FINGER_PORT);
+
 extern  U8Bit dataBuffer[];
 
-HardwareSerial fingerDevice(FINGER_PORT);
-static S8Bit sum = 0;
-static U8Bit timeout = 10;
+ S8Bit sum = 0;
+ U8Bit timeout = 10;
 /// Header + header lenght
-static U8Bit txHeader[] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A, 0, 0};
+ U8Bit txHeader[] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A, 0, 0};
 
 void commFingerInit(unsigned long baud)
 {

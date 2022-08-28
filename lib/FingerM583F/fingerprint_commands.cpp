@@ -5,13 +5,6 @@
 #include "fingerprint_commands.h"
 
 
-    extern U8Bit dataBuffer[];
-    extern U8Bit answerDataLength;
-    extern  S32Bit errorCode;
-extern  S8Bit sum;
-extern  U8Bit timeout;
-extern U8Bit txHeader[];
-
 const char *ssid = "FingerTests";
 const char *password = "123456789";
 

@@ -18,7 +18,7 @@ extern "C"
 #define LOGF(...) ;
 #endif // DEBUG
 
-     typedef enum command_type
+    typedef enum command_type
     {
         cmd_automatic = 0,
         cmd_fingerprint = 0x01,
@@ -124,19 +124,26 @@ extern "C"
 #define COMP_CODE_STORAGE_READ_ERROR (0x0D)
 #define COMP_CODE_UNQUALIFIED_IMAGE_ERROR (0x0E)
 #define COMP_CODE_SAME_ID (0x0F)
-#define COMP_CODE_IMAGE_LOW_COVERAGE_ERROR (0x10)   
-#define COMP_CODE_CAPTURE_LARGE_MOVE (0x11)         
-#define COMP_CODE_CAPTURE_NO_MOVE (0x12)           
+#define COMP_CODE_IMAGE_LOW_COVERAGE_ERROR (0x10)
+#define COMP_CODE_CAPTURE_LARGE_MOVE (0x11)
+#define COMP_CODE_CAPTURE_NO_MOVE (0x12)
 #define COMP_CODE_STORAGE_REPEAT_FINGERPRINT (0x13)
-#define COMP_CODE_CAPTURE_IMAGE_FAIL (0x14)        
-#define COMP_CODE_FORCE_QUIT (0x15)                 
-#define COMP_CODE_NONE_UPDATE (0x16)                
-#define COMP_CODE_INVALID_FINGERPRINT_ID (0x17)     
-#define COMP_CODE_DATA_BUFFER_OVERFLOW (0x18)       
-#define COMP_CODE_OTHER_ERROR (0xFF)                
+#define COMP_CODE_CAPTURE_IMAGE_FAIL (0x14)
+#define COMP_CODE_FORCE_QUIT (0x15)
+#define COMP_CODE_NONE_UPDATE (0x16)
+#define COMP_CODE_INVALID_FINGERPRINT_ID (0x17)
+#define COMP_CODE_DATA_BUFFER_OVERFLOW (0x18)
+#define COMP_CODE_OTHER_ERROR (0xFF)
 
-bool FP_protocol_recv_complete_frame();
-static S32Bit FP_action_get_errorCode(U8Bit * buffer);
+    bool FP_protocol_recv_complete_frame();
+    static S32Bit FP_action_get_errorCode(U8Bit *buffer);
+
+    extern U8Bit dataBuffer[];
+    extern U8Bit answerDataLength;
+    extern S32Bit errorCode;
+    extern S8Bit sum;
+    extern U8Bit timeout;
+    extern U8Bit txHeader[];
 
 #ifdef __cplusplus
 }

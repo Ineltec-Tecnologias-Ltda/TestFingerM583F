@@ -8,23 +8,21 @@
 HardwareSerial Log(DEBUG_PORT);
 #endif
 
-extern  S8Bit sum;
-extern  U8Bit timeout;
 
 static const U8Bit rxHeader[8] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A};
 
 ///Used for tx and rx data to/from Finger Module
-static U8Bit dataBuffer[140];
+ U8Bit dataBuffer[140];
 
 //Total received data lenght from finger module
-static U8Bit answerDataLength;
+ U8Bit answerDataLength;
 
 //Answer received from finger module
-static U8Bit rtxCommandHigh;
-static U8Bit rtxCommandLow;
+ U8Bit rtxCommandHigh;
+ U8Bit rtxCommandLow;
 
 //Answer received from finger module: must be == zero
-static S32Bit errorCode;
+ S32Bit errorCode;
 
 static S32Bit FP_action_get_errorCode(U8Bit *buffer)
 {
