@@ -23,32 +23,21 @@ bool heartbeat()
     // Total Command lenght
     txHeader[8] = 0;
     txHeader[9] = 7;
-    writeBufferPlusCheckSum(txHeader, 10);
-
-    // Command instruction
-    dataBuffer[4] = cmd_maintenance;
-    dataBuffer[5] = maintenance_heart_beat;
+    sendCommandHeader(cmd_maintenance, maintenance_heart_beat);
     writeBufferPlusCheckSum(dataBuffer, 6);
     return FP_protocol_recv_complete_frame();
 }
 
 // @see Users Manual page 45
-bool ledControl()
+bool ledControl(uint8_t *params)
 {
     // Total Command length
     txHeader[8] = 0;
     txHeader[9] = 12;
-    writeBufferPlusCheckSum(txHeader, 10);
+    sendCommandHeader(cmd_system, sys_set_led);
 
-    // Command instruction
-    dataBuffer[4] = cmd_system;
-    dataBuffer[5] = sys_set_led;
-    dataBuffer[6] = 0;  // Control mode
-    dataBuffer[7] = 0;  // Light color
-    dataBuffer[8] = 0;  // Parameter 1
-    dataBuffer[9] = 0;  // Parameter 2
-    dataBuffer[10] = 0; // Parameter 3
-    writeBufferPlusCheckSum(dataBuffer, 11);
+    writeBuffer(dataBuffer, 6);
+    writeBufferPlusCheckSum(params, 5);
     return FP_protocol_recv_complete_frame();
 }
 
@@ -58,11 +47,7 @@ bool readId()
     // Total Command lenght
     txHeader[8] = 0;
     txHeader[9] = 7;
-    writeBufferPlusCheckSum(txHeader, 10);
-
-    // Command data
-    dataBuffer[4] = cmd_maintenance;
-    dataBuffer[5] = maintenance_read_id;
+    sendCommandHeader(cmd_maintenance, maintenance_read_id);
     writeBufferPlusCheckSum(dataBuffer, 6);
     if (FP_protocol_recv_complete_frame())
     {
@@ -84,11 +69,7 @@ bool autoEnroll()
     // Total Command lenght
     txHeader[8] = 0;
     txHeader[9] = 11;
-    writeBufferPlusCheckSum(txHeader, 10);
-
-    // Command instruction
-    dataBuffer[4] = cmd_fingerprint;
-    dataBuffer[5] = fp_auto_enroll;
+    sendCommandHeader(cmd_fingerprint, fp_auto_enroll);
 
     // enrollPara.enroll_mode = 0x01 will indicate that user must lift finger and press again during enrollment
     dataBuffer[6] = 1;
@@ -146,17 +127,13 @@ bool autoEnroll()
 /// Returns true if match ok, and sets slotId with template position inside finger module
 // otherwise sets errorCode and errorMessage
 // @see Users Manual pages 23 and 24
-//TODO usar metodo 5.11 Fingerprint matching (synchronization) ?? page 26 ??
+// TODO usar metodo 5.11 Fingerprint matching (synchronization) ?? page 26 ??
 bool matchTemplate()
 {
     // Command length
     txHeader[8] = 0;
     txHeader[9] = 7;
-    writeBufferPlusCheckSum(txHeader, 10);
-
-    // Command instruction
-    dataBuffer[4] = cmd_fingerprint;
-    dataBuffer[5] = fp_match_start;
+    sendCommandHeader(cmd_fingerprint, fp_match_start);
 
     int8_t retry = 3;
     bool start = true;
@@ -165,6 +142,7 @@ bool matchTemplate()
     {
         if (start)
         {
+            sum = 0;
             writeBufferPlusCheckSum(dataBuffer, 6);
             if (FP_protocol_recv_complete_frame())
             {
@@ -177,6 +155,7 @@ bool matchTemplate()
         }
         else
         {
+            sum = 0;
             dataBuffer[5] = fp_match_result;
             writeBufferPlusCheckSum(dataBuffer, 6);
             if (!FP_protocol_recv_complete_frame())
@@ -190,8 +169,7 @@ bool matchTemplate()
                     LOGF("Score: %d   Match ok: %d\r\n", score, slotID);
                     return true;
                 }
-                else if (errorCode == COMP_CODE_CMD_NOT_FINISHED
-                        || errorCode == FP_DEVICE_TIMEOUT_ERROR)
+                else if (errorCode == COMP_CODE_CMD_NOT_FINISHED || errorCode == FP_DEVICE_TIMEOUT_ERROR)
                     vTaskDelay(100);
                 else
                 {

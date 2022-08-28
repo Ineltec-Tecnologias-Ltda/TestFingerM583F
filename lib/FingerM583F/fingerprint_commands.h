@@ -15,4 +15,4 @@ bool heartbeat();
 bool readId();
 bool autoEnroll();
 bool matchTemplate();
-bool ledControl();
+bool ledControl(uint8_t *params);

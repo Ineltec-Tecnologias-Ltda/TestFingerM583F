@@ -4,15 +4,12 @@
 #include "fingerprint_device.h"
 #include <iostream>
 
-
-
 // Set web server port number to 80
 WiFiServer server(80);
 // Variable to store the HTTP request
 String headerHttp;
 
 HardwareSerial Log(0);
-
 
 void setup()
 {
@@ -61,8 +58,8 @@ void loop()
             }
             else if (headerHttp.indexOf("Match") >= 0)
             {
-              if ( matchTemplate())
-                 Log.println("Match ok");
+              if (matchTemplate())
+                Log.println("Match ok");
             }
             else if (headerHttp.indexOf("Upload") >= 0)
             {
@@ -70,17 +67,26 @@ void loop()
             }
             else if (headerHttp.indexOf("Download") >= 0)
             {
-               Log.println("Download");
-            }else if (headerHttp.indexOf("Heartbeat") >= 0)
+              Log.println("Download");
+            }
+            else if (headerHttp.indexOf("Heartbeat") >= 0)
             {
-               Log.println("Heartbeat");
-            }else if (headerHttp.indexOf("Module Id") >= 0)
+              Log.println("Heartbeat");
+            }
+            else if (headerHttp.indexOf("Module Id") >= 0)
             {
-               Log.println("Module Id");
-               readId();
-            }else if (headerHttp.indexOf("Leds") >= 0)
+              Log.println("Module Id");
+              readId();
+            }
+            else if (headerHttp.indexOf("Leds") >= 0)
             {
-               Log.println("Leds");
+              uint8_t buffer[] = {1,  // Light color
+                                  2,  // Control mode
+                                  0,  // // Parameter 1
+                                  0,  // Parameter 2
+                                  0}; // Parameter 3
+              ledControl(buffer);
+              Log.println("Leds");
             }
 
             // Display the HTML web page
@@ -107,7 +113,6 @@ void loop()
             client.println("<a href=\"Download\"><button class=\"button\">Download</button></a>");
             client.println("</div>");
 
- 
             client.println("</body></html>");
 
             // The HTTP response ends with another blank line

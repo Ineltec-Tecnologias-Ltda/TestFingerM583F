@@ -10,9 +10,6 @@ HardwareSerial Log(DEBUG_PORT);
 
 static const U8Bit rxHeader[8] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A};
 
-/// Header + header lenght
-static U8Bit txHeader[] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A, 0, 0};
-
 ///Used for tx and rx data to/from Finger Module
 static U8Bit dataBuffer[140];
 
@@ -113,7 +110,7 @@ bool FP_protocol_recv_complete_frame()
     // Has to receive all other extra data bytes
     pos = 1;
     U8Bit dataLength = answerDataLength;
-    while (--dataLength > 0)
+    while (dataLength-- > 0)
     {
         if (FP_device_read_one_byte(dataBuffer + pos) == FP_OK)
             pos++;

@@ -20,9 +20,6 @@ extern "C"
 
     extern  S32Bit errorCode;
  
-    /// txHeader + txHeader lenght
-    extern U8Bit txHeader[];
-
     extern U8Bit dataBuffer[];
     extern U8Bit answerDataLength;
 
