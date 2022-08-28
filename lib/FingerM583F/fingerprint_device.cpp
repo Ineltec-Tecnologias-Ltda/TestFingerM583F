@@ -47,11 +47,6 @@ void sendCommandHeader(U8Bit commandHigh, U8Bit commandLow)
 	dataBuffer[5] = commandLow;
 }
 
-/* write data */
-void FP_device_write_data(U8Bit *data, size_t length)
-{
-	fingerDevice.write(data, length);
-}
 
 // writes data + calculate and send checksum
 void writeBufferPlusCheckSum(U8Bit *data, size_t length)
@@ -61,9 +56,9 @@ void writeBufferPlusCheckSum(U8Bit *data, size_t length)
 	{
 		x = *data++;
 		sum += x;
-		fingerDevice.print(x);
+		fingerDevice.write(x);
 	};
-	fingerDevice.print((U8Bit)((~sum) + 1));
+	fingerDevice.write((U8Bit)((~sum) + 1));
 }
 
 // writes data + calculate checksum
