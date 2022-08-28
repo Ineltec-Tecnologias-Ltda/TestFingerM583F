@@ -12,7 +12,7 @@ HardwareSerial Log(0);
 void setup()
 {
   Log.begin(57600, SERIAL_8N1, 3, 1);
-  //commFingerInit(115200);
+  // commFingerInit(115200);
   WiFi.softAP(ssid, password);
 
   IPAddress IP = WiFi.softAPIP();
@@ -27,17 +27,19 @@ void loop()
   WiFiClient client = server.available(); // Listen for incoming clients
 
   if (client)
-  {                                // If a new client connects,
+  {                             // If a new client connects,
     Log.println("New Client."); // print a message out in the serial port
-    String currentLine = "";       // make a String to hold incoming data from the client
-String headerHttp = "";
-   while (client.connected())
+    String currentLine = "";    // make a String to hold incoming data from the client
+    String headerHttp = "";
+    int i = 0;
+    while (client.connected())
     { // loop while the client's connected
       if (client.available())
       {                         // if there's bytes to read from the client,
         char c = client.read(); // read a byte, then
         Log.write(c);           // print it out the serial monitor
-        headerHttp += c;
+        if (i++ < 30)
+          headerHttp += c;
 
         if (c == '\n')
         { // if the byte is a newline character
@@ -46,6 +48,7 @@ String headerHttp = "";
           if (currentLine.length() == 0)
           {
             Log.println();
+
             client.println("HTTP/1.1 200 OK");
             client.println("Content-type:text/html");
             client.println("Connection: close");
@@ -53,10 +56,12 @@ String headerHttp = "";
 
             if (headerHttp.indexOf("Enroll") >= 0)
             {
+              Log.println("autoEnroll");
               autoEnroll();
             }
             else if (headerHttp.indexOf("Match") >= 0)
             {
+              Log.println("Match");
               if (matchTemplate())
                 Log.println("Match ok");
             }
@@ -125,7 +130,6 @@ String headerHttp = "";
           { // if you got a newline, then clear currentLine
             currentLine = "";
           }
-
         }
         else if (c != '\r')
         {                   // if you got anything else but a carriage return character,
