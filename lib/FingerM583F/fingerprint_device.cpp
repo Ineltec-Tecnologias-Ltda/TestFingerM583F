@@ -1,6 +1,9 @@
 #include "fingerprint_device.h"
 #include "fingerprint_protocol.h"
 #include <Arduino.h>
+
+extern  U8Bit dataBuffer[];
+
 HardwareSerial fingerDevice(FINGER_PORT);
 static S8Bit sum = 0;
 static U8Bit timeout = 10;

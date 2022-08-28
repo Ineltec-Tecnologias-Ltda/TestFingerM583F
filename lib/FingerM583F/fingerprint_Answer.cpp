@@ -8,6 +8,9 @@
 HardwareSerial Log(DEBUG_PORT);
 #endif
 
+extern  S8Bit sum;
+extern  U8Bit timeout;
+
 static const U8Bit rxHeader[8] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A};
 
 ///Used for tx and rx data to/from Finger Module
@@ -68,6 +71,7 @@ bool FP_protocol_get_frame_head()
             }
         }
     }
+    return false;
 }
 
 bool FP_protocol_recv_complete_frame()

@@ -10,11 +10,6 @@
 extern "C" {   
 #endif
 
-extern  S8Bit sum;
-extern  U8Bit timeout;
-
-/// txHeader + txHeader lenght
-extern U8Bit txHeader[];
 
 void commFingerInit(unsigned long  baud);
 void FP_device_write_data(U8Bit *data, size_t length);

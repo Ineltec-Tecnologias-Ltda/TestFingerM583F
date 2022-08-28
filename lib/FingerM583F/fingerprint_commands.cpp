@@ -4,6 +4,14 @@
 #include "fingerprint_device.h"
 #include "fingerprint_commands.h"
 
+
+    extern U8Bit dataBuffer[];
+    extern U8Bit answerDataLength;
+    extern  S32Bit errorCode;
+extern  S8Bit sum;
+extern  U8Bit timeout;
+extern U8Bit txHeader[];
+
 const char *ssid = "FingerTests";
 const char *password = "123456789";
 
@@ -108,14 +116,14 @@ bool autoEnroll()
             {
                 errorMessage = TryAgain;
                 LOGF("Enroll Error: %d\r\n", errorCode);
-                return;
+                return false;
             }
         }
         else
         {
             errorMessage = TryAgain;
             LOGF(" Error: %d\r\n", errorCode);
-            return;
+            return false;
         }
     }
     LOG("Timeout Error");
@@ -175,7 +183,7 @@ bool matchTemplate()
                 {
                     errorMessage = TryAgain;
                     LOGF(" Error: %d\r\n", errorCode);
-                    return;
+                    return false;
                 }
             }
         }

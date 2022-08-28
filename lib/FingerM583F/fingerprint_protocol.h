@@ -18,12 +18,7 @@ extern "C"
 #define LOGF(...) ;
 #endif // DEBUG
 
-    extern  S32Bit errorCode;
- 
-    extern U8Bit dataBuffer[];
-    extern U8Bit answerDataLength;
-
-    typedef enum command_type
+     typedef enum command_type
     {
         cmd_automatic = 0,
         cmd_fingerprint = 0x01,
