@@ -1,178 +1,151 @@
 #include "fingerprint_type.h"
 #include <Arduino.h>
 
-#ifdef __cplusplus   
-extern "C" {   
+#ifdef __cplusplus
+extern "C"
+{
 #endif
 
-
 #ifdef ENABLE_DEBUG_FINGER
-HardwareSerial Log(DEBUG_PORT); 
-#define LOG(X) { Log.println( X );}
-#define LOGF(...) Log.printf( __VA_ARGS__ );
+    HardwareSerial Log(DEBUG_PORT);
+#define LOG(X)          \
+    {                   \
+        Log.println(X); \
+    }
+#define LOGF(...) Log.printf(__VA_ARGS__);
 #else
-#define LOG(...);
-#define LOGF(...);
+#define LOG(...) ;
+#define LOGF(...) ;
 #endif // DEBUG
 
-typedef  struct 
-{
-    U8Bit  *data;
-    U32Bit length;
-} FP_data_area_t;
+    extern  S32Bit errorCode;
+ 
+    /// txHeader + txHeader lenght
+    extern U8Bit txHeader[];
 
-typedef  struct 
-{
-    U8Bit  forhead[8]= {0xF1,0x1F,0xE2,0x2E,0xB6,0x6B,0xA8,0x8A};
-    U16Bit length=0;
-    U8Bit  checksum=0;
-} FP_frame_head_t;
+    extern U8Bit dataBuffer[];
+    extern U8Bit answerDataLength;
 
-typedef  struct 
-{
-    FP_frame_head_t frame_head{};
-    U8Bit pwd[4]={0,0,0,0};
-    U8Bit  cmd_type;
-    U8Bit  cmd_word;
-} FP_send_t;
+    typedef enum command_type
+    {
+        cmd_automatic = 0,
+        cmd_fingerprint = 0x01,
+        cmd_system = 0x02,
+        cmd_maintenance = 0x03
+    } FP_cmd_type;
 
-typedef  struct 
-{
-    FP_frame_head_t frame_head;
-      U8Bit pwd[4]={0,0,0,0};
-    U8Bit  cmd_type;
-    U8Bit  cmd_word;
-    U8Bit  error_code[4];
-}FP_recv_t;
+    typedef enum automatic_type_word
+    {
+        fp_automatic_enroll = 0x03, // users manual page 22
+    } FP_automatic_cmd_word;
 
-typedef enum
-{
-    sleep_type_normal = 0,
-    sleep_type_deep   = 1
-}FP_sleep_type;
+    typedef enum fingerprint_type_word
+    {
+        fp_capture_start = 0x01,  // Not in users manual
+        fp_capture_result = 0x02, // Not in users manual
 
+        fp_enroll_start = 0x11,
+        fp_enroll_result = 0x12,
+        fp_enroll_save_start = 0x13,
+        fp_enroll_save_result = 0x14,
+        fp_enroll_cancel = 0x15,
 
-/*
- --------------------------------------------------------------------------------------------------------------------
- |                         |            |          |              |          |          |               |          |
- |          forhead        |            |          |   password   |          |          |               |          |
- |                         |   length   | checksum |              | cmd_type | cmd_word |   data_area   | checksum |
- | F1 1F E2 2E B6 6B A8 8A |            |          |  0x00000000  |          |          |               |          |
- |                         |            |          |              |          |          |               |          |
- --------------------------------------------------------------------------------------------------------------------
- |                         |            |          |              |          |          |               |          |
- |           8byte         |   2 byte   |  1 byte  |    4 byte    |  1 byte  |  1 byte  |     n byte    |  1 byte  |
- |                         |            |          |              |          |          |               |          |
- --------------------------------------------------------------------------------------------------------------------
- |                                                 |                                    |
- | <<----------    FP_frame_head_t    ---------->> |                                    |
- |                                                 |                                    |
- |--------------------------------------------------------------------------------------|
- |
-                                                                                      |
- | <<-----------------------------     FP_send_t    --------------------------------->> |
- |                                                                                      | 
- ----------------------------------------------------------------------------------------
+        fp_update_start = 0x16,
+        fp_update_result = 0x17,
 
+        fp_auto_enroll = 0x18,
 
+        fp_match_start = 0x21,
+        fp_match_result = 0x22,
+        fp_match_sync = 0x23,
 
+        fp_delete_start = 0x31,
+        fp_delete_result = 0x32,
+        fp_is_fp_id_exist = 0x33,
+        fp_get_all_slots_status = 0x34,
+        fp_query_slot_status = 0x35,
 
+        fp_delete_templates = 0x36,
 
- ---------------------------------------------------------------------------------------------------------------------------
- |                         |            |          |              |          |          |           |           |          |
- |          forhead        |            |          |   password   |          |          |           |           |          |
- |                         |   length   | checksum |              | cmd_type | cmd_word | errorCode | data_area | checksum |
- | F1 1F E2 2E B6 6B A8 8A |            |          |  0x00000000  |          |          |           |           |          |
- |                         |            |          |              |          |          |           |           |          |
- ---------------------------------------------------------------------------------------------------------------------------
- |                         |            |          |              |          |          |           |           |          |
- |           8byte         |   2 byte   |  1 byte  |    4 byte    |  1 byte  |  1 byte  |   4 byte  |   n byte  |  1 byte  |
- |                         |            |          |              |          |          |           |           |          |
- ---------------------------------------------------------------------------------------------------------------------------
- |                                                 |                                                |
- | <<----------    FP_frame_head_t    ---------->> |                                                |
- |                                                 |                                                |
- |--------------------------------------------------------------------------------------------------|
- |
-                                                                                                  |
- | <<-----------------------------------     FP_recv_t    --------------------------------------->> |
- |                                                                                                  | 
- ----------------------------------------------------------------------------------------------------
-*/
+        fp_enroll_verify_start = 0x41,
+        fp_enroll_verify_result = 0x42,
+        fp_start_send_template = 0x51,
+        fp_send_template_data = 0x52,
+        fp_start_get_template = 0x53,
+        fp_get_template_data = 0x54,
 
+    } FP_fp_cmd_word;
 
+    typedef enum system_command_word
+    {
+        sys_set_passwd = 0x01,
+        sys_reset = 0x02,
+        sys_get_nb_templates = 0x03, // Obtain the number of fingerprint templates
+        sys_set_gain = 0x08,
+        sys_get_gain = 0x09,
+        sys_set_thresholds = 0x0A, // set matching thresholds
+        sys_get_thresholds = 0x0B, // Obtain matching thresholds
+        sys_sleep = 0x0C,
+        sys_set_enroll_max_num = 0x0D, // Setting range (1~6)
+        sys_set_led = 0x0F,
+        sys_get_policys = 0xFB, // Get System Policy Send Format Table
+        sys_set_policys = 0xFC  // Set System Policy Send Format Table
+    } FP_sys_cmd_word;
 
+    typedef enum maintenance_command_word
+    {
+        maintenance_read_id = 0x01,
+        maintenance_set_id = 0x02,
+        maintenance_heart_beat = 0x03,
+        maintenance_set_baudrate = 0x04,
+        maintenance_set_com_passwd = 0x05
+    } FP_mtnce_cmd_word;
+
+    typedef enum
+    {
+        sleep_type_normal = 0,
+        sleep_type_deep = 1
+    } FP_sleep_type;
+
+    typedef struct
+    {
+        U8Bit pwd[8];
+        U8Bit cmd_type;
+        U8Bit cmd_word;
+        U8Bit error_code[4];
+    } FP_recv_t;
 
 /******************************************   errorCode   ***************************************/
-#define COMP_CODE_OK                      (0x00)
-#define COMP_CODE_UNKNOWN_CMD             (0x01)
-#define COMP_CODE_CMD_DATA_LEN_ERROR      (0x02)
-#define COMP_CODE_CMD_DATA_ERROR          (0x03)
-#define COMP_CODE_CMD_NOT_FINISHED        (0x04)
-#define COMP_CODE_NO_REQ_CMD              (0x05)
-#define COMP_CODE_SYS_SOFT_ERROR          (0x06)
-#define COMP_CODE_HARDWARE_ERROR          (0x07)
-#define COMP_CODE_NO_FINGER_DETECT        (0x08)
-#define COMP_CODE_FINGER_EXTRACT_ERROR    (0x09)
-#define COMP_CODE_FINGER_MATCH_ERROR      (0x0A)
-#define COMP_CODE_STORAGE_IS_FULL         (0x0B)
-#define COMP_CODE_STORAGE_WRITE_ERROR     (0x0C)
-#define COMP_CODE_STORAGE_READ_ERROR      (0x0D)
+#define COMP_CODE_OK (0x00)
+#define COMP_CODE_UNKNOWN_CMD (0x01)
+#define COMP_CODE_CMD_DATA_LEN_ERROR (0x02)
+#define COMP_CODE_CMD_DATA_ERROR (0x03)
+#define COMP_CODE_CMD_NOT_FINISHED (0x04)
+#define COMP_CODE_NO_REQ_CMD (0x05)
+#define COMP_CODE_SYS_SOFT_ERROR (0x06)
+#define COMP_CODE_HARDWARE_ERROR (0x07)
+#define COMP_CODE_NO_FINGER_DETECT (0x08)
+#define COMP_CODE_FINGER_EXTRACT_ERROR (0x09)
+#define COMP_CODE_FINGER_MATCH_ERROR (0x0A)
+#define COMP_CODE_STORAGE_IS_FULL (0x0B)
+#define COMP_CODE_STORAGE_WRITE_ERROR (0x0C)
+#define COMP_CODE_STORAGE_READ_ERROR (0x0D)
 #define COMP_CODE_UNQUALIFIED_IMAGE_ERROR (0x0E)
-#define COMP_CODE_SAME_ID				  (0x0F)
-#define COMP_CODE_IMAGE_LOW_COVERAGE_ERROR      (0x10)  //2����????yD?
-#define COMP_CODE_CAPTURE_LARGE_MOVE            (0x11)  //��??����??��1y�䨮
-#define COMP_CODE_CAPTURE_NO_MOVE               (0x12)  //��??����??��1yD?
-#define COMP_CODE_STORAGE_REPEAT_FINGERPRINT    (0x13)  //???��????
-#define COMP_CODE_CAPTURE_IMAGE_FAIL            (0x14)  //2����?����㨹
-#define COMP_CODE_FORCE_QUIT                    (0x15)  //????��?3?
-#define COMP_CODE_NONE_UPDATE                   (0x16)  //??��D?��D?
-#define COMP_CODE_INVALID_FINGERPRINT_ID        (0x17)  //?TD��????ID
-#define COMP_CODE_DATA_BUFFER_OVERFLOW          (0x18)  //��y?Y?o3???��?3?
-#define COMP_CODE_OTHER_ERROR                   (0xFF)  //????�䨪?��
+#define COMP_CODE_SAME_ID (0x0F)
+#define COMP_CODE_IMAGE_LOW_COVERAGE_ERROR (0x10)   
+#define COMP_CODE_CAPTURE_LARGE_MOVE (0x11)         
+#define COMP_CODE_CAPTURE_NO_MOVE (0x12)           
+#define COMP_CODE_STORAGE_REPEAT_FINGERPRINT (0x13)
+#define COMP_CODE_CAPTURE_IMAGE_FAIL (0x14)        
+#define COMP_CODE_FORCE_QUIT (0x15)                 
+#define COMP_CODE_NONE_UPDATE (0x16)                
+#define COMP_CODE_INVALID_FINGERPRINT_ID (0x17)     
+#define COMP_CODE_DATA_BUFFER_OVERFLOW (0x18)       
+#define COMP_CODE_OTHER_ERROR (0xFF)                
 
+bool FP_protocol_recv_complete_frame();
+static S32Bit FP_action_get_errorCode(U8Bit * buffer);
 
-/* get fingerprint frame*/
-S32Bit FP_protocol_get_fp_enroll_start_frame(FP_send_p send, U8Bit index);
-S32Bit FP_protocol_get_fp_enroll_result_frame(FP_send_p send);
-S32Bit FP_protocol_get_fp_enroll_save_start_frame(FP_send_p send, U16Bit id);
-S32Bit FP_protocol_get_fp_enroll_save_result_frame(FP_send_p send);
-S32Bit FP_protocol_get_fp_enroll_cancel_frame(FP_send_p send);
-S32Bit FP_protocol_get_fp_match_start_frame(FP_send_p send);
-S32Bit FP_protocol_get_fp_match_result_frame(FP_send_p send);
-S32Bit FP_protocol_get_fp_delete_start_frame(FP_send_p send, S16Bit id);
-S32Bit FP_protocol_get_fp_delete_result_frame(FP_send_p send);
-S32Bit FP_protocol_get_fp_is_touch_sensor_frame(FP_send_p send);
-S32Bit FP_protocol_get_fp_enroll_verify_start_frame(FP_send_p send);
-S32Bit FP_protocol_get_fp_enroll_verify_result_frame(FP_send_p send);
-
-S32Bit FP_protocol_get_fp_update_start_frame(FP_send_p send, S16Bit updateID);
-S32Bit FP_protocol_get_fp_update_result_frame(FP_send_p send);
-
-S32Bit FP_protocol_auto_enroll_frame(FP_send_p send , void * data);
-S32Bit FP_protocol_match_syn_frame(FP_send_p send);
-S32Bit FP_protocol_delete_syn_frame(FP_send_p send , S16Bit id);
-
-
-/* get system frame */
-S32Bit FP_protocol_get_sys_reset_frame(FP_send_p send);
-S32Bit FP_protocol_get_sys_sleep_frame(FP_send_p send, FP_sleep_type type);
-
-S32Bit FP_protocol_get_sys_pulse_frame(FP_send_p send);
-
-/* get maintenace frame */
-S32Bit FP_protocol_get_mtnce_read_id_frame(FP_send_p send);
-
-S32Bit FP_protocol_get_fp_is_id_exist_frame(FP_send_p send, U16Bit id);
-
-/* send mesg */
-void FP_protocol_send_command(FP_send_p send, U32Bit timeout);
-S32Bit FP_protocol_send_delete_mesg(FP_send_p send, S32Bit id_len, U32Bit timeout);
-
-/* recv complete frame */
-S32Bit FP_protocol_recv_complete_frame(FP_recv_p recv,FP_data_area_p data_area, U32Bit timeout);
-
-
-#ifdef __cplusplus   
-}   
+#ifdef __cplusplus
+}
 #endif

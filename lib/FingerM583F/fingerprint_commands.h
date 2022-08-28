@@ -1,7 +1,7 @@
 #include "fingerprint_type.h"
 
 extern const char *errorMessage;
-extern   U16Bit slotID;
+extern   U8Bit slotID;
 extern S32Bit errorCode;
 
 extern const char *ssid;
@@ -12,6 +12,7 @@ extern const char *TimeoutError;
 extern const char *TryAgain;
 
 bool heartbeat();
-char* readId();
+bool readId();
 bool autoEnroll();
 bool matchTemplate();
+bool ledControl();

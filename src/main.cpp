@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include "fingerprint_commands.h"
-#include "fingerprint_action.h"
 #include "fingerprint_device.h"
 #include <iostream>
 
@@ -10,7 +9,7 @@
 // Set web server port number to 80
 WiFiServer server(80);
 // Variable to store the HTTP request
-String header;
+String headerHttp;
 
 HardwareSerial Log(0);
 
@@ -42,7 +41,7 @@ void loop()
       {                         // if there's bytes to read from the client,
         char c = client.read(); // read a byte, then
         Log.write(c);           // print it out the serial monitor
-        header += c;
+        headerHttp += c;
 
         if (c == '\n')
         { // if the byte is a newline character
@@ -56,30 +55,30 @@ void loop()
             client.println("Connection: close");
             client.println();
 
-            if (header.indexOf("Enroll") >= 0)
+            if (headerHttp.indexOf("Enroll") >= 0)
             {
               autoEnroll();
             }
-            else if (header.indexOf("Match") >= 0)
+            else if (headerHttp.indexOf("Match") >= 0)
             {
               if ( matchTemplate())
                  Log.println("Match ok");
             }
-            else if (header.indexOf("Upload") >= 0)
+            else if (headerHttp.indexOf("Upload") >= 0)
             {
               Log.println("Upload");
             }
-            else if (header.indexOf("Download") >= 0)
+            else if (headerHttp.indexOf("Download") >= 0)
             {
                Log.println("Download");
-            }else if (header.indexOf("Heartbeat") >= 0)
+            }else if (headerHttp.indexOf("Heartbeat") >= 0)
             {
                Log.println("Heartbeat");
-            }else if (header.indexOf("Module Id") >= 0)
+            }else if (headerHttp.indexOf("Module Id") >= 0)
             {
                Log.println("Module Id");
-               FP_action_getID();
-            }else if (header.indexOf("Leds") >= 0)
+               readId();
+            }else if (headerHttp.indexOf("Leds") >= 0)
             {
                Log.println("Leds");
             }
@@ -127,8 +126,8 @@ void loop()
         }
       }
     }
-    // Clear the header variable
-    header = "";
+    // Clear the headerHttp variable
+    headerHttp = "";
     // Close the connection
     client.stop();
     Log.println("Client disconnected.");

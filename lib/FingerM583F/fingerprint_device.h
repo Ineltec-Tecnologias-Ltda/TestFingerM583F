@@ -10,10 +10,13 @@
 extern "C" {   
 #endif
 
+extern  S8Bit sum;
+extern  U8Bit timeout;
+
 void commFingerInit(unsigned long  baud);
-S32Bit FP_device_read_data(U8Bit * data, size_t length, U32Bit timeout);
 void FP_device_write_data(U8Bit *data, size_t length);
-S32Bit FP_device_read_one_byte(U8Bit * data, U32Bit timeout);
+S32Bit FP_device_read_one_byte(U8Bit * data);
+void writeBufferPlusCheckSum(U8Bit *data, size_t length);
 
 #ifdef __cplusplus  
 }
