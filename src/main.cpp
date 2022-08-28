@@ -6,20 +6,18 @@
 
 // Set web server port number to 80
 WiFiServer server(80);
-// Variable to store the HTTP request
-String headerHttp;
 
 HardwareSerial Log(0);
 
 void setup()
 {
-  Log.begin(115200, SERIAL_8N1, 3, 1);
-  commFingerInit(57600);
+  Log.begin(57600, SERIAL_8N1, 3, 1);
+  //commFingerInit(115200);
   WiFi.softAP(ssid, password);
 
   IPAddress IP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(IP);
+  Log.printf("AP IP address: ");
+  Log.println(IP);
 
   server.begin();
 }
@@ -30,9 +28,10 @@ void loop()
 
   if (client)
   {                                // If a new client connects,
-    Serial.println("New Client."); // print a message out in the serial port
+    Log.println("New Client."); // print a message out in the serial port
     String currentLine = "";       // make a String to hold incoming data from the client
-    while (client.connected())
+String headerHttp = "";
+   while (client.connected())
     { // loop while the client's connected
       if (client.available())
       {                         // if there's bytes to read from the client,
@@ -71,9 +70,10 @@ void loop()
             }
             else if (headerHttp.indexOf("Heartbeat") >= 0)
             {
+              heartbeat();
               Log.println("Heartbeat");
             }
-            else if (headerHttp.indexOf("Module Id") >= 0)
+            else if (headerHttp.indexOf("Module") >= 0)
             {
               Log.println("Module Id");
               readId();
@@ -118,12 +118,14 @@ void loop()
             // The HTTP response ends with another blank line
             client.println();
             // Break out of the while loop
+            headerHttp = "";
             break;
           }
           else
           { // if you got a newline, then clear currentLine
             currentLine = "";
           }
+
         }
         else if (c != '\r')
         {                   // if you got anything else but a carriage return character,
