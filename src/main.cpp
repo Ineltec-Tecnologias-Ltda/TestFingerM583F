@@ -32,14 +32,18 @@ void loop()
     String currentLine = "";    // make a String to hold incoming data from the client
     String headerHttp = "";
     int i = 0;
+    int pos = 0;
     while (client.connected())
     { // loop while the client's connected
       if (client.available())
       {                         // if there's bytes to read from the client,
         char c = client.read(); // read a byte, then
         Log.write(c);           // print it out the serial monitor
-        if (i++ < 30)
+        if (i < 50)
+        { // actions to execute are on first chars
           headerHttp += c;
+          i++;
+        }
 
         if (c == '\n')
         { // if the byte is a newline character
@@ -54,9 +58,14 @@ void loop()
             client.println("Connection: close");
             client.println();
 
-            if (headerHttp.indexOf("Enroll") >= 0)
+            if ((pos = headerHttp.indexOf("Enroll=")) >= 0)
             {
-              Log.println("autoEnroll");
+
+              headerHttp = headerHttp.substring(pos, i - 1);
+              int pos2 = headerHttp.indexOf(" ");
+
+                Log.printf("autoEnroll  %d",pos2);
+              Log.println(headerHttp.substring(7, pos2));
               autoEnroll();
             }
             else if (headerHttp.indexOf("Match") >= 0)
@@ -103,8 +112,10 @@ void loop()
             client.println(".button2 {background-color: #555555;}</style></head>");
             client.println("<body><h1 style=\"color:Tomato;\">Finger M583F Server</h1>");
 
-            client.println("<input type=\"text\" id=\"fname\" name=\"fname\">");
-            client.println("  <a href=\"Enroll\"><button class=\"button\">Enroll</button></a><br><br>");
+            client.println("<form action=\"/finger.php\">");
+            client.println("<input type=\"text\" id=\"Enroll\" name=\"Enroll\">");
+            client.println("<input type=\"submit\" value=\"Enroll\">");
+            client.println("</form>");
 
             client.println("<div class=\"btn-group\">");
             client.println(" <a href=\"Heartbeat\"><button class=\"button\">Heartbeat</button></a>");
