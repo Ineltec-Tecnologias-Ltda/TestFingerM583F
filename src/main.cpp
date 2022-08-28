@@ -60,11 +60,9 @@ void loop()
 
             if ((pos = headerHttp.indexOf("Enroll=")) >= 0)
             {
-
               headerHttp = headerHttp.substring(pos, i - 1);
               int pos2 = headerHttp.indexOf(" ");
-
-                Log.printf("autoEnroll  %d",pos2);
+              Log.print("Typed text=");
               Log.println(headerHttp.substring(7, pos2));
               autoEnroll();
             }
