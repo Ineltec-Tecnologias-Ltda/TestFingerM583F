@@ -90,9 +90,9 @@ void loop()
             else if (headerHttp.indexOf("Module") >= 0)
             {
               if (readId())
-                Log.printf("Module Id: %s\r\n", dataBuffer);
+                Log.printf("\r\nModule Id: %s\r\n", dataBuffer);
               else
-                Log.println("Module Id");
+                Log.println("\r\nModule Id");
             }
             else if (headerHttp.indexOf("Leds") >= 0)
             {
