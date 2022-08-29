@@ -92,11 +92,11 @@ void loop()
             }
             else if (headerHttp.indexOf("Leds") >= 0)
             {
-              uint8_t buffer[] = {1,  // Control mode 
-                                  1,  // Light color
-                                  0,  // // Parameter 1
+              uint8_t buffer[] = {3,  // Control mode 
+                                  3,  // Light color
+                                  0x64,  // // Parameter 1
                                   0,  // Parameter 2
-                                  0}; // Parameter 3
+                                  0x32}; // Parameter 3
               ledControl(buffer);
               Log.println("Leds");
             }

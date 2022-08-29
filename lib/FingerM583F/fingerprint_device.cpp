@@ -75,6 +75,6 @@ void writeBuffer(U8Bit *data, size_t length)
 	{
 		x = *data++;
 		sum += x;
-		fingerDevice.print(x);
+		fingerDevice.write(x);
 	};
 }
