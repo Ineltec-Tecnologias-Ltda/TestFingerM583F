@@ -19,6 +19,5 @@ bool readId();
 bool autoEnroll();
 bool matchTemplate();
 bool ledControl(uint8_t *params);
-void fingerInitLog(unsigned long baud);
 
 extern S16Bit debugRxState;

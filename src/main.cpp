@@ -12,7 +12,6 @@ HardwareSerial Log(0);
 void setup()
 {
   Log.begin(57600, SERIAL_8N1, 3, 1);
-  fingerInitLog(57600);
   commFingerInit(57600);
 
   WiFi.softAP(ssid, password);

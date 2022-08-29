@@ -2,12 +2,6 @@
 #include "fingerprint_protocol.h"
 #include "fingerprint_device.h"
 
-#define DEFAULT_TIME_OUT (100)
-
-#ifdef ENABLE_DEBUG_FINGER
-HardwareSerial Log(DEBUG_PORT);
-#endif
-
 S16Bit debugRxState = 0;
 
 static const U8Bit rxHeader[8] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A};

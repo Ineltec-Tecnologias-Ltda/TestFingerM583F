@@ -17,10 +17,6 @@ const char *Enrolling = "Enrolling...";
 const char *TimeoutError = "Timeout Error...";
 const char *TryAgain = "Please Try Again";
 
-void fingerInitLog(unsigned long baud)
-{
-	//Log1.begin(baud, SERIAL_8N1, 3, 1);
-}
 
 /// Tests if Finger Module is responsive
 // @see Users Manual page 49
@@ -38,6 +34,7 @@ bool heartbeat()
 // @see Users Manual page 45
 bool ledControl(uint8_t *params)
 {
+    LOG("ledControl...");
     // Total Command length
     txHeader[8] = 0;
     txHeader[9] = 12;
@@ -61,7 +58,7 @@ bool readId()
           debugRxState = -1000;
         /* gets Ascii value module id */
         dataBuffer[answerDataLength] = 0;
-        LOGF("Module Id: %s\r\n", dataBuffer);
+        LOGF("Module Id...: %s\r\n", dataBuffer);
         return true;
     }
     LOG("test...");
