@@ -74,7 +74,10 @@ bool FP_protocol_get_frame_head()
             }
         }
         else
+        {
+            delay(10);
             debugRxState += 100;
+        }
     }
     return false;
 }
@@ -114,7 +117,7 @@ bool FP_protocol_recv_complete_frame()
         return false;
     }
 
-     // Has received first extra data byte
+    // Has received first extra data byte
     dataBuffer[0] = dataBuffer[10];
     timeout = 10;
     debugRxState = -100;

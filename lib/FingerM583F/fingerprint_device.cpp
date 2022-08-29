@@ -3,16 +3,25 @@
 #include <Arduino.h>
 
 #define fingerVin GPIO_NUM_13
+#define fingerInt GPIO_NUM_5
 
 HardwareSerial fingerDevice(FINGER_PORT);
 
 extern U8Bit dataBuffer[];
 
+bool fingerInterrupt = false;
+
 U8Bit sumTxDebug = 0;
 int sum = 0;
-U8Bit timeout = 10;
+S16Bit timeout = 10;
 /// Header + header lenght
 U8Bit txHeader[] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A, 0, 0};
+
+void fingerModuleInterrupt()
+{
+	//LOG("Finger sensor...");
+	fingerInterrupt = true;
+}
 
 void commFingerInit(unsigned long baud)
 {
@@ -20,7 +29,13 @@ void commFingerInit(unsigned long baud)
 	// Turns on MosFet to powerup Finger Module
 	digitalWrite(fingerVin, HIGH);
 
+	pinMode(fingerInt, INPUT);
+	attachInterrupt(fingerInt, fingerModuleInterrupt, RISING);
+
 	fingerDevice.begin(baud, SERIAL_8N1, 3, 1);
+	delay(100);
+	LOGINIT();
+	delay(100);
 }
 
 /* read one byte and adds to checksum*/
@@ -47,7 +62,7 @@ void sendCommandHeader(U8Bit commandHigh, U8Bit commandLow)
 {
 	sum = 0;
 	writeBufferPlusCheckSum(txHeader, 10);
-	memset(dataBuffer, 0, 4); // Sets Check password to zeroes
+	memset(dataBuffer, 0, 8); // Sets Check password to zeroes
 
 	// Command data
 	dataBuffer[4] = commandHigh;

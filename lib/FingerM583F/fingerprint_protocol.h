@@ -11,6 +11,7 @@ extern "C"
     {                   \
         Serial.println(X); \
     }
+#define LOGINIT(...)  Serial.begin(57600, SERIAL_8N1, 3, 1);
 #define LOGF(...) Serial.printf(__VA_ARGS__);
 #else
 #define LOGINIT(...);
@@ -142,9 +143,9 @@ extern "C"
     extern U8Bit answerDataLength;
     extern S32Bit errorCode;
     extern int sum;
-    extern U8Bit timeout;
+    extern S16Bit timeout;
     extern U8Bit txHeader[];
- 
+    extern bool fingerInterrupt;
  
 
 #ifdef __cplusplus

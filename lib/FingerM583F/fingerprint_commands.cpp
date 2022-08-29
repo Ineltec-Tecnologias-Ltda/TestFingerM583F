@@ -4,7 +4,6 @@
 #include "fingerprint_device.h"
 #include "fingerprint_commands.h"
 
-
 const char *ssid = "FingerTests";
 
 const char *password = "123456789";
@@ -16,7 +15,6 @@ const char *EnrollOk = "Enroll OK";
 const char *Enrolling = "Enrolling...";
 const char *TimeoutError = "Timeout Error...";
 const char *TryAgain = "Please Try Again";
-
 
 /// Tests if Finger Module is responsive
 // @see Users Manual page 49
@@ -55,7 +53,7 @@ bool readId()
     writeBufferPlusCheckSum(dataBuffer, 6);
     if (FP_protocol_recv_complete_frame() == true)
     {
-          debugRxState = -1000;
+        debugRxState = -1000;
         /* gets Ascii value module id */
         dataBuffer[answerDataLength] = 0;
         LOGF("Module Id...: %s\r\n", dataBuffer);
@@ -66,11 +64,33 @@ bool readId()
     return false;
 }
 
+bool fingerWaiting()
+{
+     LOG("Waiting for Finger...");
+    int timeout = 600;
+    fingerInterrupt = false;
+    while (timeout-- > 0 && !fingerInterrupt) 
+        delay(10);
+    
+    if (fingerInterrupt)
+    {
+        fingerInterrupt = false;
+        LOG("fingerInterrupt...");
+        delay(500);
+        return true;
+    }
+
+    LOG("No Finger detected!!");
+    return false;
+}
+
 /// Returns true if match ok, and sets slotId with template position inside finger module
 // otherwise sets errorCode and errorMessage
 // @see Users Manual pages 22 and 23
 bool autoEnroll()
 {
+    if (!fingerWaiting())
+        return false;
 
     // Total Command lenght
     txHeader[8] = 0;
@@ -120,7 +140,7 @@ bool autoEnroll()
         else
         {
             errorMessage = TryAgain;
-            LOGF(" Error: %d\r\n", errorCode);
+            LOGF("TryAgain?  Error: %d\r\n", errorCode);
             return false;
         }
     }
@@ -136,6 +156,9 @@ bool autoEnroll()
 // TODO usar metodo 5.11 Fingerprint matching (synchronization) ?? page 26 ??
 bool matchTemplate()
 {
+    if (!fingerWaiting())
+        return false;
+
     // Command length
     txHeader[8] = 0;
     txHeader[9] = 7;
