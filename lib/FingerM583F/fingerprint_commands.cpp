@@ -18,6 +18,10 @@ const char *Enrolling = "Enrolling...";
 const char *TimeoutError = "Timeout Error...";
 const char *TryAgain = "Please Try Again";
 
+void fingerInitLog(unsigned long baud)
+{
+	Log1.begin(baud, SERIAL_8N1, 3, 1);
+}
 /// Tests if Finger Module is responsive
 // @see Users Manual page 49
 bool heartbeat()

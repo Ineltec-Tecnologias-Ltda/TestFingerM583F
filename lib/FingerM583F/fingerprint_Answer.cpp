@@ -8,21 +8,22 @@
 HardwareSerial Log(DEBUG_PORT);
 #endif
 
+U8Bit debugRxState = 0;
 
 static const U8Bit rxHeader[8] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A};
 
-///Used for tx and rx data to/from Finger Module
- U8Bit dataBuffer[140];
+/// Used for tx and rx data to/from Finger Module
+U8Bit dataBuffer[140];
 
-//Total received data lenght from finger module
- U8Bit answerDataLength;
+// Total received data lenght from finger module
+U8Bit answerDataLength;
 
-//Answer received from finger module
- U8Bit rtxCommandHigh;
- U8Bit rtxCommandLow;
+// Answer received from finger module
+U8Bit rtxCommandHigh;
+U8Bit rtxCommandLow;
 
-//Answer received from finger module: must be == zero
- S32Bit errorCode;
+// Answer received from finger module: must be == zero
+S32Bit errorCode;
 
 static S32Bit FP_action_get_errorCode(U8Bit *buffer)
 {
@@ -36,6 +37,7 @@ static S32Bit FP_action_get_errorCode(U8Bit *buffer)
 
 bool FP_protocol_get_frame_head()
 {
+    debugRxState = 0;
     U8Bit header = 0;
     U8Bit headerPos = 0;
     sum = 0;
@@ -46,18 +48,27 @@ bool FP_protocol_get_frame_head()
         {
             // Must receive complete rxHeader
             // To consider as a valid response
+            if (debugRxState == 0)
+                debugRxState = 1;
             if (header == rxHeader[headerPos])
             {
+
+                debugRxState++;
                 timeout = 10;
                 if (++headerPos == 8)
                 {
+                    debugRxState = 30;
                     if (FP_device_read_one_byte(&header) == FP_OK && header == 0) // Data lenght high is always zero
                         if (FP_device_read_one_byte(&header) == FP_OK && header >= 11 && header < 138)
                         { // Checks if valid data length
+                            debugRxState = 40;
                             answerDataLength = header;
                             // Checks if calculated sum == received sum
-                            if (FP_device_read_one_byte(&header) == FP_OK && sum == 0)
+                            if (FP_device_read_one_byte(&header) == FP_OK && ((U8Bit)((~sum) + 1)) == 0)
+                            {
+                                debugRxState = 50;
                                 return true;
+                            }
                         }
                     return false;
                 }
@@ -68,6 +79,8 @@ bool FP_protocol_get_frame_head()
                 headerPos = 0;
             }
         }
+        else
+            debugRxState += 100;
     }
     return false;
 }

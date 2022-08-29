@@ -18,7 +18,7 @@ void writeBuffer(U8Bit *data, size_t length);
 void sendCommandHeader(U8Bit commandHigh,U8Bit commandLow);
 
 extern int sum;
-extern U8Bit sumTst;
+extern U8Bit sumTxDebug;
 #ifdef __cplusplus  
 }
 #endif

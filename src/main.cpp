@@ -4,23 +4,20 @@
 #include "fingerprint_device.h"
 #include <iostream>
 
-#define	liga5V GPIO_NUM_13
+
 
 // Set web server port number to 80
 WiFiServer server(80);
 
 HardwareSerial Log(0);
 
-static const uint8_t test_finger[23] = 
-{0xF1,0x1F,0xE2,0x2E,0xB6,0x6B,0xA8,0x8A,0,0x0C,0x81,0,0,0,0,2,0x0F,4,1,0x14,0x14,5,0xBD};
-
 void setup()
 {
   Log.begin(57600, SERIAL_8N1, 3, 1);
+  fingerInitLog(57600);
   commFingerInit(57600);
+ 
   WiFi.softAP(ssid, password);
-pinMode(liga5V, OUTPUT);
-	digitalWrite(liga5V, HIGH);
 
   IPAddress IP = WiFi.softAPIP();
   Log.printf("AP IP address: ");
@@ -89,7 +86,12 @@ void loop()
             }
             else if (headerHttp.indexOf("Heartbeat") >= 0)
             {
-              heartbeat();
+              if (heartbeat()){
+                 /* gets Ascii value module id */
+        dataBuffer[answerDataLength] = 0;
+        Log.printf("Module Id: %s\r\n", dataBuffer);
+              }
+              else
               Log.println("Heartbeat");
             }
             else if (headerHttp.indexOf("Module") >= 0)
@@ -99,18 +101,17 @@ void loop()
             }
             else if (headerHttp.indexOf("Leds") >= 0)
             {
-              uint8_t buffer[] = {4,  // Control mode 
-                                  1,  // Light color
-                                  0x14,  // // Parameter 1
-                                  0x14,  // Parameter 2
-                                  5}; // Parameter 3
-             ledControl(buffer);
-//delay(100);
-//Log.write(test_finger,23);
-//delay(100);
+              uint8_t buffer[] = {4,    // Control mode
+                                  1,    // Light color
+                                  0x14, // // Parameter 1
+                                  0x14, // Parameter 2
+                                  5};   // Parameter 3
+              ledControl(buffer);
               Log.println("Leds");
             }
- Log.printf("sum: %d\r\n",sumTst);
+            Log.printf("sum debug Tx: %d\r\n", sumTxDebug);
+            Log.printf("Rx debug  State: %d\r\n", debugRxState);
+
             // Display the HTML web page
             client.println("<!DOCTYPE html><html>");
 

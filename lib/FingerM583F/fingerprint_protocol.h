@@ -148,6 +148,8 @@ extern "C"
     extern int sum;
     extern U8Bit timeout;
     extern U8Bit txHeader[];
+ 
+ 
 
 #ifdef __cplusplus
 }
