@@ -9,6 +9,9 @@ WiFiServer server(80);
 
 HardwareSerial Log(0);
 
+static const uint8_t test_finger[23] = 
+{0xF1,0x1F,0xE2,0x2E,0xB6,0x6B,0xA8,0x8A,0,0x0C,0x81,0,0,0,0,2,0x0F,4,1,0x14,0x14,5,0xBD};
+
 void setup()
 {
   Log.begin(57600, SERIAL_8N1, 3, 1);
@@ -92,12 +95,15 @@ void loop()
             }
             else if (headerHttp.indexOf("Leds") >= 0)
             {
-              uint8_t buffer[] = {3,  // Control mode 
-                                  3,  // Light color
-                                  0x64,  // // Parameter 1
-                                  0,  // Parameter 2
-                                  0x32}; // Parameter 3
-              ledControl(buffer);
+              uint8_t buffer[] = {4,  // Control mode 
+                                  1,  // Light color
+                                  0x14,  // // Parameter 1
+                                  0x14,  // Parameter 2
+                                  5}; // Parameter 3
+            //  ledControl(buffer);
+delay(100);
+Log.write(test_finger,23);
+delay(100);
               Log.println("Leds");
             }
  Log.printf("sum: %d\r\n",sumTst);
