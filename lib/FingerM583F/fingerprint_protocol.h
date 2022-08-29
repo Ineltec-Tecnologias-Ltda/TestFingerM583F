@@ -7,13 +7,17 @@ extern "C"
 #endif
 
 #ifdef ENABLE_DEBUG_FINGER
-    HardwareSerial Log(DEBUG_PORT);
 #define LOG(X)          \
     {                   \
-        Log.println(X); \
+        Log1.println(X); \
     }
-#define LOGF(...) Log.printf(__VA_ARGS__);
+#define LOGINIT(...)          \
+    {                   \
+       Log1.begin(57600, SERIAL_8N1, 3, 1); \
+    }
+#define LOGF(...) Log1.printf(__VA_ARGS__);
 #else
+#define LOGINIT(...);
 #define LOG(...) ;
 #define LOGF(...) ;
 #endif // DEBUG
@@ -141,7 +145,7 @@ extern "C"
     extern U8Bit dataBuffer[];
     extern U8Bit answerDataLength;
     extern S32Bit errorCode;
-    extern S8Bit sum;
+    extern int sum;
     extern U8Bit timeout;
     extern U8Bit txHeader[];
 

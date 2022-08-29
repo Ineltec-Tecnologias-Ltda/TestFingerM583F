@@ -4,8 +4,10 @@
 #include "fingerprint_device.h"
 #include "fingerprint_commands.h"
 
+HardwareSerial Log1(0);
 
 const char *ssid = "FingerTests";
+
 const char *password = "123456789";
 
 U8Bit slotID;
@@ -20,12 +22,13 @@ const char *TryAgain = "Please Try Again";
 // @see Users Manual page 49
 bool heartbeat()
 {
-
+    LOGINIT();
     // Total Command lenght
     txHeader[8] = 0;
     txHeader[9] = 7;
     sendCommandHeader(cmd_maintenance, maintenance_heart_beat);
     writeBufferPlusCheckSum(dataBuffer, 6);
+
     return FP_protocol_recv_complete_frame();
 }
 

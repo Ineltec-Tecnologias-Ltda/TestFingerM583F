@@ -4,9 +4,11 @@
 
 HardwareSerial fingerDevice(FINGER_PORT);
 
+
 extern  U8Bit dataBuffer[];
 
- S8Bit sum = 0;
+ U8Bit sumTst = 0;
+  int sum = 0;
  U8Bit timeout = 10;
 /// Header + header lenght
  U8Bit txHeader[] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A, 0, 0};
@@ -45,6 +47,8 @@ void sendCommandHeader(U8Bit commandHigh, U8Bit commandLow)
 	// Command data
 	dataBuffer[4] = commandHigh;
 	dataBuffer[5] = commandLow;
+
+ 	sum = 0;
 }
 
 
@@ -58,7 +62,9 @@ void writeBufferPlusCheckSum(U8Bit *data, size_t length)
 		sum += x;
 		fingerDevice.write(x);
 	};
-	fingerDevice.write((U8Bit)((~sum) + 1));
+	sum= (U8Bit)((~sum) + 1); 
+	sumTst = (U8Bit)sum;
+	fingerDevice.write( (U8Bit)sum);
 }
 
 // writes data + calculate checksum

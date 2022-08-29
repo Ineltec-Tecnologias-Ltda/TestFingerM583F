@@ -92,15 +92,15 @@ void loop()
             }
             else if (headerHttp.indexOf("Leds") >= 0)
             {
-              uint8_t buffer[] = {1,  // Light color
-                                  2,  // Control mode
+              uint8_t buffer[] = {1,  // Control mode 
+                                  1,  // Light color
                                   0,  // // Parameter 1
                                   0,  // Parameter 2
                                   0}; // Parameter 3
               ledControl(buffer);
               Log.println("Leds");
             }
-
+ Log.printf("sum: %d\r\n",sumTst);
             // Display the HTML web page
             client.println("<!DOCTYPE html><html>");
 
