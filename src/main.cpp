@@ -89,7 +89,7 @@ void loop()
             }
             else if (headerHttp.indexOf("Module") >= 0)
             {
-              if (readId())
+              if (readId() && debugRxState == -1000)
                 Log.printf("\r\nModule Id: %s\r\n", dataBuffer);
               else
                 Log.println("\r\nModule Id");

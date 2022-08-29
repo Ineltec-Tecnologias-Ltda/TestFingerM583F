@@ -4,7 +4,6 @@
 #include "fingerprint_device.h"
 #include "fingerprint_commands.h"
 
-HardwareSerial Log1(0);
 
 const char *ssid = "FingerTests";
 
@@ -20,7 +19,7 @@ const char *TryAgain = "Please Try Again";
 
 void fingerInitLog(unsigned long baud)
 {
-	Log1.begin(baud, SERIAL_8N1, 3, 1);
+	//Log1.begin(baud, SERIAL_8N1, 3, 1);
 }
 
 /// Tests if Finger Module is responsive

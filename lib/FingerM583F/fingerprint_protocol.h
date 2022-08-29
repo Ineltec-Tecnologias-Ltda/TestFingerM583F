@@ -9,13 +9,9 @@ extern "C"
 #ifdef ENABLE_DEBUG_FINGER
 #define LOG(X)          \
     {                   \
-        Log1.println(X); \
+        Serial.println(X); \
     }
-#define LOGINIT(...)          \
-    {                   \
-       Log1.begin(57600, SERIAL_8N1, 3, 1); \
-    }
-#define LOGF(...) Log1.printf(__VA_ARGS__);
+#define LOGF(...) Serial.printf(__VA_ARGS__);
 #else
 #define LOGINIT(...);
 #define LOG(...) ;
