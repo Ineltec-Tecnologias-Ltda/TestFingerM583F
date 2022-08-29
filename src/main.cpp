@@ -4,6 +4,8 @@
 #include "fingerprint_device.h"
 #include <iostream>
 
+#define	liga5V GPIO_NUM_13
+
 // Set web server port number to 80
 WiFiServer server(80);
 
@@ -17,6 +19,8 @@ void setup()
   Log.begin(57600, SERIAL_8N1, 3, 1);
   commFingerInit(57600);
   WiFi.softAP(ssid, password);
+pinMode(liga5V, OUTPUT);
+	digitalWrite(liga5V, HIGH);
 
   IPAddress IP = WiFi.softAPIP();
   Log.printf("AP IP address: ");
@@ -100,10 +104,10 @@ void loop()
                                   0x14,  // // Parameter 1
                                   0x14,  // Parameter 2
                                   5}; // Parameter 3
-            //  ledControl(buffer);
-delay(100);
-Log.write(test_finger,23);
-delay(100);
+             ledControl(buffer);
+//delay(100);
+//Log.write(test_finger,23);
+//delay(100);
               Log.println("Leds");
             }
  Log.printf("sum: %d\r\n",sumTst);
