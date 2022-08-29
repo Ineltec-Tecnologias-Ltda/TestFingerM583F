@@ -22,11 +22,11 @@ void fingerInitLog(unsigned long baud)
 {
 	Log1.begin(baud, SERIAL_8N1, 3, 1);
 }
+
 /// Tests if Finger Module is responsive
 // @see Users Manual page 49
 bool heartbeat()
 {
-    LOGINIT();
     // Total Command lenght
     txHeader[8] = 0;
     txHeader[9] = 7;
@@ -57,13 +57,15 @@ bool readId()
     txHeader[9] = 7;
     sendCommandHeader(cmd_maintenance, maintenance_read_id);
     writeBufferPlusCheckSum(dataBuffer, 6);
-    if (FP_protocol_recv_complete_frame())
+    if (FP_protocol_recv_complete_frame() == true)
     {
+          debugRxState = -1000;
         /* gets Ascii value module id */
         dataBuffer[answerDataLength] = 0;
         LOGF("Module Id: %s\r\n", dataBuffer);
         return true;
     }
+    LOG("test...");
 
     return false;
 }

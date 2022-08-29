@@ -8,7 +8,7 @@
 HardwareSerial Log(DEBUG_PORT);
 #endif
 
-U8Bit debugRxState = 0;
+S16Bit debugRxState = 0;
 
 static const U8Bit rxHeader[8] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A};
 
@@ -92,6 +92,7 @@ bool FP_protocol_recv_complete_frame()
     U8Bit pos = 0;
     if (!FP_protocol_get_frame_head())
         return false;
+    debugRxState = -1;
 
     // Must now receive at least Check password + Command + error code + Checksum
     sum = 0;
@@ -100,6 +101,7 @@ bool FP_protocol_recv_complete_frame()
     {
         if (FP_device_read_one_byte(dataBuffer + pos) == FP_OK)
         {
+            debugRxState--;
             pos++;
             answerDataLength--;
         }
@@ -118,21 +120,30 @@ bool FP_protocol_recv_complete_frame()
         return false;
     }
 
-    // Has received first extra data byte
+     // Has received first extra data byte
     dataBuffer[0] = dataBuffer[10];
     timeout = 10;
+    debugRxState = -100;
+    FP_action_get_errorCode(dataBuffer + 6);
 
     // Has to receive all other extra data bytes
     pos = 1;
     U8Bit dataLength = answerDataLength;
     while (dataLength-- > 0)
     {
+        debugRxState--;
         if (FP_device_read_one_byte(dataBuffer + pos) == FP_OK)
             pos++;
         else
-            return false;
+        {
+            debugRxState = -255;
+        }
     }
-    if (sum == 0)
+    if (((U8Bit)((~sum) + 1)) == 0)
+    {
+        debugRxState = -200;
         return true;
+    }
+    debugRxState = -256;
     return false;
 }

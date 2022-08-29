@@ -21,4 +21,4 @@ bool matchTemplate();
 bool ledControl(uint8_t *params);
 void fingerInitLog(unsigned long baud);
 
-extern U8Bit debugRxState;
+extern S16Bit debugRxState;

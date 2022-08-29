@@ -4,8 +4,6 @@
 #include "fingerprint_device.h"
 #include <iostream>
 
-
-
 // Set web server port number to 80
 WiFiServer server(80);
 
@@ -16,7 +14,7 @@ void setup()
   Log.begin(57600, SERIAL_8N1, 3, 1);
   fingerInitLog(57600);
   commFingerInit(57600);
- 
+
   WiFi.softAP(ssid, password);
 
   IPAddress IP = WiFi.softAPIP();
@@ -86,18 +84,15 @@ void loop()
             }
             else if (headerHttp.indexOf("Heartbeat") >= 0)
             {
-              if (heartbeat()){
-                 /* gets Ascii value module id */
-        dataBuffer[answerDataLength] = 0;
-        Log.printf("Module Id: %s\r\n", dataBuffer);
-              }
-              else
+              heartbeat();
               Log.println("Heartbeat");
             }
             else if (headerHttp.indexOf("Module") >= 0)
             {
-              Log.println("Module Id");
-              readId();
+              if (readId())
+                Log.printf("Module Id: %s\r\n", dataBuffer);
+              else
+                Log.println("Module Id");
             }
             else if (headerHttp.indexOf("Leds") >= 0)
             {
@@ -109,7 +104,7 @@ void loop()
               ledControl(buffer);
               Log.println("Leds");
             }
-            Log.printf("sum debug Tx: %d\r\n", sumTxDebug);
+            Log.printf("\r\nsum debug Tx: %d\r\n", sumTxDebug);
             Log.printf("Rx debug  State: %d\r\n", debugRxState);
 
             // Display the HTML web page
