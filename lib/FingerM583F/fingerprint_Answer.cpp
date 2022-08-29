@@ -94,6 +94,7 @@ bool FP_protocol_recv_complete_frame()
     // Must now receive at least Check password + Command + error code + Checksum
     sum = 0;
     timeout = 10;
+    errorCode = 0;
     while (pos < 11)
     {
         if (FP_device_read_one_byte(dataBuffer + pos) == FP_OK)
@@ -112,6 +113,7 @@ bool FP_protocol_recv_complete_frame()
             rtxCommandHigh = dataBuffer[4];
             rtxCommandLow = dataBuffer[5];
             FP_action_get_errorCode(dataBuffer + 6);
+            LOG(" Valid response, no extras\r\n");
             return true; // Valid response with no extra data bytes
         }
         return false;
@@ -139,6 +141,7 @@ bool FP_protocol_recv_complete_frame()
     if (((U8Bit)((~sum) + 1)) == 0)
     {
         debugRxState = -200;
+         LOG(" Valid response\r\n");
         return true;
     }
     debugRxState = -256;

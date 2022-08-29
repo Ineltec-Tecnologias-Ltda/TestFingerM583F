@@ -51,7 +51,7 @@ bool readId()
     txHeader[9] = 7;
     sendCommandHeader(cmd_maintenance, maintenance_read_id);
     writeBufferPlusCheckSum(dataBuffer, 6);
-    if (FP_protocol_recv_complete_frame() == true)
+    if (FP_protocol_recv_complete_frame() == true && errorCode == 0)
     {
         debugRxState = -1000;
         /* gets Ascii value module id */
@@ -59,19 +59,18 @@ bool readId()
         LOGF("Module Id...: %s\r\n", dataBuffer);
         return true;
     }
-    LOG("test...");
-
+     LOGF("Module Id Error: %d\r\n", errorCode);
     return false;
 }
 
 bool fingerWaiting()
 {
-     LOG("Waiting for Finger...");
+    LOG("Waiting for Finger...");
     int timeout = 600;
     fingerInterrupt = false;
-    while (timeout-- > 0 && !fingerInterrupt) 
+    while (timeout-- > 0 && !fingerInterrupt)
         delay(10);
-    
+
     if (fingerInterrupt)
     {
         fingerInterrupt = false;
@@ -134,7 +133,10 @@ bool autoEnroll()
             {
                 errorMessage = TryAgain;
                 LOGF("Enroll Error: %d\r\n", errorCode);
-                return false;
+                if (errorCode == 8)
+                    delay(100);
+                else
+                    return false;
             }
         }
         else
@@ -166,6 +168,7 @@ bool matchTemplate()
 
     int8_t retry = 3;
     bool start = true;
+    errorCode = 0;
 
     while (retry-- > 0)
     {
@@ -173,14 +176,18 @@ bool matchTemplate()
         {
             sum = 0;
             writeBufferPlusCheckSum(dataBuffer, 6);
-            if (FP_protocol_recv_complete_frame())
+            if (FP_protocol_recv_complete_frame() && errorCode == 0)
             {
                 retry = 10;
                 start = false;
                 vTaskDelay(200);
             }
             else
+            {
+                LOGF("\r\nError code: %d\r\n", errorCode);
+                errorCode = 0;
                 vTaskDelay(50);
+            }
         }
         else
         {
