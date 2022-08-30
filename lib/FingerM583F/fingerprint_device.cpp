@@ -19,7 +19,7 @@ U8Bit txHeader[] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A, 0, 0};
 
 void fingerModuleInterrupt()
 {
-	//LOG("Finger sensor...");
+	// LOG("Finger sensor...");
 	fingerInterrupt = true;
 }
 
@@ -58,15 +58,19 @@ S32Bit FP_device_read_one_byte(U8Bit *data)
 }
 
 // Sends Command header and prepares command buffer
-void sendCommandHeader(U8Bit commandHigh, U8Bit commandLow)
+void sendCommandHeader(const U8Bit *command)
 {
+	// Total Command lenght
+	txHeader[8] = 0;
+	txHeader[9] = command[2];
+
 	sum = 0;
 	writeBufferPlusCheckSum(txHeader, 10);
 	memset(dataBuffer, 0, 8); // Sets Check password to zeroes
 
 	// Command data
-	dataBuffer[4] = commandHigh;
-	dataBuffer[5] = commandLow;
+	dataBuffer[4] = command[0];
+	dataBuffer[5] = command[1];
 
 	sum = 0;
 }
@@ -75,7 +79,7 @@ void sendCommandHeader(U8Bit commandHigh, U8Bit commandLow)
 void writeBufferPlusCheckSum(U8Bit *data, size_t length)
 {
 	U8Bit x = 0;
-	for (int i = 0; i < length; i++)
+	for (uint i = 0; i < length; i++)
 	{
 		x = *data++;
 		sum += x;
@@ -90,7 +94,7 @@ void writeBufferPlusCheckSum(U8Bit *data, size_t length)
 void writeBuffer(U8Bit *data, size_t length)
 {
 	U8Bit x = 0;
-	for (int i = 0; i < length; i++)
+	for (uint i = 0; i < length; i++)
 	{
 		x = *data++;
 		sum += x;

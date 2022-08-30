@@ -94,19 +94,6 @@ extern "C"
         maintenance_set_com_passwd = 0x05
     } FP_mtnce_cmd_word;
 
-    typedef enum
-    {
-        sleep_type_normal = 0,
-        sleep_type_deep = 1
-    } FP_sleep_type;
-
-    typedef struct
-    {
-        U8Bit pwd[8];
-        U8Bit cmd_type;
-        U8Bit cmd_word;
-        U8Bit error_code[4];
-    } FP_recv_t;
 
 /******************************************   errorCode   ***************************************/
 #define COMP_CODE_OK (0x00)

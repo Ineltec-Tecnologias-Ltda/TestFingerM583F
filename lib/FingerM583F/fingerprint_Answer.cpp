@@ -48,12 +48,13 @@ bool FP_protocol_get_frame_head()
             {
 
                 debugRxState++;
+
                 timeout = 10;
                 if (++headerPos == 8)
                 {
                     debugRxState = 30;
-                    if (FP_device_read_one_byte(&header) == FP_OK && header == 0) // Data lenght high is always zero
-                        if (FP_device_read_one_byte(&header) == FP_OK && header >= 11 && header < 138)
+                    if ((errorCode = FP_device_read_one_byte(&header)) == FP_OK && header == 0) // Data lenght high is always zero
+                        if ((errorCode = FP_device_read_one_byte(&header)) == FP_OK && header >= 11 && header < 138)
                         { // Checks if valid data length
                             debugRxState = 40;
                             answerDataLength = header;
@@ -63,7 +64,13 @@ bool FP_protocol_get_frame_head()
                                 debugRxState = 50;
                                 return true;
                             }
+                            else
+                                errorCode = FP_PROTOCOL_UART_HEAD_CHECKSUM_ERROR;
                         }
+                        else
+                            errorCode = FP_PROTOCOL_RECV_DATA_LENGTH_ERROR;
+                    else
+                        errorCode = FP_DEVICE_TIMEOUT_ERROR;
                     return false;
                 }
             }
@@ -75,6 +82,7 @@ bool FP_protocol_get_frame_head()
         }
         else
         {
+            errorCode = FP_DEVICE_TIMEOUT_ERROR;
             delay(10);
             debugRxState += 100;
         }
@@ -82,6 +90,11 @@ bool FP_protocol_get_frame_head()
     return false;
 }
 
+/// Receives complete response
+/// if response ok:
+///   - Sets "errorCode" with received code ( codes list at "fingerprint_protocol.h")
+///   - Places all received data to "dataBuffer"
+///   - Sets "answerDataLength" with received data size
 bool FP_protocol_recv_complete_frame()
 {
     U8Bit command = 0;
@@ -104,7 +117,10 @@ bool FP_protocol_recv_complete_frame()
             answerDataLength--;
         }
         else
+        {
+            errorCode = FP_DEVICE_TIMEOUT_ERROR;
             return false;
+        }
     }
     if (answerDataLength == 0)
     { // response with no extra data bytes
@@ -116,6 +132,8 @@ bool FP_protocol_recv_complete_frame()
             LOG(" Valid response, no extras\r\n");
             return true; // Valid response with no extra data bytes
         }
+        else
+            errorCode = FP_PROTOCOL_DATA_CHECKSUM_ERROR;
         return false;
     }
 
@@ -135,15 +153,19 @@ bool FP_protocol_recv_complete_frame()
             pos++;
         else
         {
+            errorCode = FP_DEVICE_TIMEOUT_ERROR;
             debugRxState = -255;
         }
     }
     if (((U8Bit)((~sum) + 1)) == 0)
     {
         debugRxState = -200;
-         LOG(" Valid response\r\n");
+        LOGF(" Valid response, errorCode: %d\r\n",errorCode);
         return true;
     }
+    else
+        errorCode = FP_PROTOCOL_DATA_CHECKSUM_ERROR;
+
     debugRxState = -256;
     return false;
 }
