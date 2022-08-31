@@ -248,7 +248,7 @@ bool matchTemplate()
     if (!fingerWaiting())
         return false;
 
-    int retry = 4;
+    int retry = 10;
     bool start = true;
     errorCode = 0;
     delay(200);
@@ -276,13 +276,13 @@ bool matchTemplate()
             sendCommandHeader(MatchResult);
             writeBufferPlusCheckSum(dataBuffer, 6);
             if (!FP_protocol_recv_complete_frame())
-                vTaskDelay(100);
+                delay(100);
             else
             {
-                if (errorCode == 0 && dataBuffer[11] == 1) // pass ok == 1
+                if (errorCode == 0 && dataBuffer[1] == 1) // pass ok == 1
                 {
-                    uint16_t score = dataBuffer[12] << 8 + dataBuffer[13];
-                    slotID = dataBuffer[15]; // slotID;
+                    uint16_t score =(uint16_t)dataBuffer[2] << 8 + dataBuffer[3];
+                    slotID = dataBuffer[5]; // slotID;
                     LOGF("Score: %d   Match ok: %d\r\n", score, slotID);
                     return true;
                 }

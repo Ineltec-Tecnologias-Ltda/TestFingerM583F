@@ -34,10 +34,10 @@ static S32Bit FP_action_get_errorCode(U8Bit *buffer)
     return errorCode;
 }
 
-///Gets complete header
-///Verifies header checksum
-/// If ok, sets "answerDataLength" == total data bytes to receive after header
-/// If not ok, sets "errorCode" value
+/// Gets complete header
+/// Verifies header checksum
+///  If ok, sets "answerDataLength" == total data bytes to receive after header
+///  If not ok, sets "errorCode" value
 bool FP_protocol_get_frame_head()
 {
     debugRxState = 0;
@@ -133,22 +133,24 @@ bool FP_protocol_recv_complete_frame()
     }
     if (answerDataLength == 0)
     { // response with no extra data bytes
-        if (sum == 0)
+        if ((U8Bit)((~sum) + 1) == 0)
         {
             FP_action_get_errorCode(dataBuffer);
             LOG(" Valid response, no extras\r\n");
             return true; // Valid response with no extra data bytes
         }
-        else
-            errorCode = FP_PROTOCOL_DATA_CHECKSUM_ERROR;
+
+        errorCode = FP_PROTOCOL_DATA_CHECKSUM_ERROR;
+        LOG(" CHECKSUM ERROR\r\n");
+
         return false;
     }
 
     // Has received first extra data byte after error code
-    //Place this bytes on first data buffer position
+    // Place this bytes on first data buffer position
     dataBuffer[0] = dataBuffer[10];
 
-    pos = 1; //index where to place other data bytes
+    pos = 1; // index where to place other data bytes
     timeout = 10;
     debugRxState = -100;
     FP_action_get_errorCode(dataBuffer);
@@ -169,11 +171,12 @@ bool FP_protocol_recv_complete_frame()
     if (((U8Bit)((~sum) + 1)) == 0)
     {
         debugRxState = -200;
-        LOGF(" Valid response, errorCode: %d\r\n", errorCode);
+        LOGF(" Valid response, errorCode: %d    #bytes=%d\r\n", errorCode,answerDataLength);
         return true;
     }
-    else
-        errorCode = FP_PROTOCOL_DATA_CHECKSUM_ERROR;
+
+    errorCode = FP_PROTOCOL_DATA_CHECKSUM_ERROR;
+    LOGF(" CHECKSUM ERROR...#bytes=%d\r\n",answerDataLength);
 
     debugRxState = -256;
     return false;
