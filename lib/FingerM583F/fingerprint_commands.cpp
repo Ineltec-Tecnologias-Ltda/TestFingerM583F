@@ -53,7 +53,7 @@ bool readId()
 
     sendCommandHeader(ReadId);
     writeBufferPlusCheckSum(dataBuffer, 6);
-    if (FP_protocol_recv_complete_frame() == true && errorCode == 0)
+    if (FP_protocol_recv_complete_frame() == true && errorCode == 0 && answerDataLength > 0)
     {
         debugRxState = -1000;
         /* gets Ascii value module id */
@@ -61,7 +61,7 @@ bool readId()
         LOGF("Module Id...: %s\r\n", dataBuffer);
         return true;
     }
-    LOGF("Module Id Error: %d\r\n", errorCode);
+    LOGF("Module Id Error:  %04X\r\n", errorCode);
     return false;
 }
 
@@ -105,7 +105,7 @@ bool autoEnroll()
     sendCommandHeader(AutoEnroll);
 
     // enrollPara.enroll_mode = 0x01 will indicate that user must lift finger and press again during enrollment
-    dataBuffer[6] = 0;
+    dataBuffer[6] = 1;
 
     // enrollPara.times is the number of presses (can be set to 1~6 times)
     dataBuffer[7] = 6;
@@ -146,7 +146,7 @@ bool autoEnroll()
             else
             {
                 errorMessage = TryAgain;
-                LOGF("Enroll Error: %d\r\n", errorCode);
+                LOGF("Enroll Error:  %04X\r\n", errorCode);
                 if (errorCode == COMP_CODE_NO_FINGER_DETECT)
                     delay(100);
                 else
@@ -156,7 +156,7 @@ bool autoEnroll()
         else
         {
             errorMessage = TryAgain;
-            LOGF("TryAgain?  Error: %d\r\n", errorCode);
+            LOGF("TryAgain?  Error:  %04X\r\n", errorCode);
             delay(100);
             writeBufferPlusCheckSum(dataBuffer, 10);
             delay(100);
@@ -220,7 +220,7 @@ bool enroll()
             else
             {
                 errorMessage = TryAgain;
-                LOGF("Enroll Error: %d\r\n", errorCode);
+                LOGF("Enroll Error: %04X\r\n", errorCode);
                 if (errorCode == 8)
                     delay(100);
                 else
@@ -230,7 +230,7 @@ bool enroll()
         else
         {
             errorMessage = TryAgain;
-            LOGF("TryAgain?  Error: %d\r\n", errorCode);
+            LOGF("TryAgain?  Error: %04X\r\n", errorCode);
             return false;
         }
     }
@@ -279,19 +279,29 @@ bool matchTemplate()
                 delay(100);
             else
             {
-                if (errorCode == 0 && dataBuffer[1] == 1) // pass ok == 1
+                if (errorCode == 0)
                 {
-                    uint16_t score =(uint16_t)dataBuffer[2] << 8 + dataBuffer[3];
-                    slotID = dataBuffer[5]; // slotID;
-                    LOGF("Score: %d   Match ok: %d\r\n", score, slotID);
-                    return true;
+                    if (dataBuffer[1] == 1)
+                    {
+                        // pass ok == 1)
+                        uint16_t score = (uint16_t)dataBuffer[2] << 8 + dataBuffer[3];
+                        slotID = dataBuffer[5]; // slotID;
+                        LOGF(" Match ok   Score: %d   SlotId: %d\r\n", score, slotID);
+                        return true;
+                    }
+                    else
+                    {
+                        slotID = 0xff;
+                        LOG(" No Match");
+                        return true;
+                    }
                 }
                 else if (errorCode == COMP_CODE_CMD_NOT_FINISHED || errorCode == FP_DEVICE_TIMEOUT_ERROR)
                     vTaskDelay(100);
                 else
                 {
                     errorMessage = TryAgain;
-                    LOGF(" Error: %d\r\n", errorCode);
+                    LOGF(" Error: %04X\r\n", errorCode);
                     return false;
                 }
             }

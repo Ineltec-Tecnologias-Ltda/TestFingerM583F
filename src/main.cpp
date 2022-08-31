@@ -69,9 +69,13 @@ void loop()
             }
             else if (headerHttp.indexOf("Match") >= 0)
             {
-              Log.println("Match");
               if (matchTemplate())
-                Log.println("Match ok");
+              {
+                if (slotID == 0xff)
+                  Log.println("No Match");
+                else
+                  Log.printf("Match on slot: %d", slotID);
+              }
             }
             else if (headerHttp.indexOf("Upload") >= 0)
             {
@@ -83,15 +87,16 @@ void loop()
             }
             else if (headerHttp.indexOf("Heartbeat") >= 0)
             {
-              heartbeat();
+              if (heartbeat())
               Log.println("Heartbeat");
+              else    Log.println("No module response!!");
             }
             else if (headerHttp.indexOf("Module") >= 0)
             {
-              if (readId() && debugRxState == -1000)
+              if (readId())
                 Log.printf("\r\nModule Id: %s\r\n", dataBuffer);
               else
-                Log.println("\r\nModule Id");
+                Log.println("\r\nFailed to get Module Id\r\r");
             }
             else if (headerHttp.indexOf("Leds") >= 0)
             {
@@ -101,7 +106,6 @@ void loop()
                                   0x14, // Parameter 2
                                   5};   // Parameter 3
               ledControl(buffer);
-              Log.println("Leds");
             }
             Log.printf("\r\nsum debug Tx: %d\r\n", sumTxDebug);
             Log.printf("Rx debug  State: %d\r\n", debugRxState);
