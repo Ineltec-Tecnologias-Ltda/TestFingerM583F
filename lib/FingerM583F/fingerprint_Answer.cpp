@@ -12,23 +12,32 @@ U8Bit dataBuffer[140];
 // Total received data lenght from finger module
 U8Bit answerDataLength;
 
-// Answer received from finger module
+// Answer command received from finger module
 U8Bit rtxCommandHigh;
+// Answer command received from finger module
 U8Bit rtxCommandLow;
 
 // Answer received from finger module: must be == zero
 S32Bit errorCode;
 
+/// Saves error code and command from received data
 static S32Bit FP_action_get_errorCode(U8Bit *buffer)
 {
-    errorCode = (U32Bit)buffer[0] << 24;
-    errorCode += (U32Bit)buffer[1] << 16;
-    errorCode += (U32Bit)buffer[2] << 8;
-    errorCode += (U32Bit)buffer[3];
+    rtxCommandHigh = dataBuffer[4];
+    rtxCommandLow = dataBuffer[5];
+
+    errorCode = (U32Bit)buffer[6] << 24;
+    errorCode += (U32Bit)buffer[7] << 16;
+    errorCode += (U32Bit)buffer[8] << 8;
+    errorCode += (U32Bit)buffer[9];
 
     return errorCode;
 }
 
+///Gets complete header
+///Verifies header checksum
+/// If ok, sets "answerDataLength" == total data bytes to receive after header
+/// If not ok, sets "errorCode" value
 bool FP_protocol_get_frame_head()
 {
     debugRxState = 0;
@@ -126,9 +135,7 @@ bool FP_protocol_recv_complete_frame()
     { // response with no extra data bytes
         if (sum == 0)
         {
-            rtxCommandHigh = dataBuffer[4];
-            rtxCommandLow = dataBuffer[5];
-            FP_action_get_errorCode(dataBuffer + 6);
+            FP_action_get_errorCode(dataBuffer);
             LOG(" Valid response, no extras\r\n");
             return true; // Valid response with no extra data bytes
         }
@@ -137,14 +144,16 @@ bool FP_protocol_recv_complete_frame()
         return false;
     }
 
-    // Has received first extra data byte
+    // Has received first extra data byte after error code
+    //Place this bytes on first data buffer position
     dataBuffer[0] = dataBuffer[10];
+
+    pos = 1; //index where to place other data bytes
     timeout = 10;
     debugRxState = -100;
-    FP_action_get_errorCode(dataBuffer + 6);
+    FP_action_get_errorCode(dataBuffer);
 
     // Has to receive all other extra data bytes
-    pos = 1;
     U8Bit dataLength = answerDataLength;
     while (dataLength-- > 0)
     {
@@ -160,7 +169,7 @@ bool FP_protocol_recv_complete_frame()
     if (((U8Bit)((~sum) + 1)) == 0)
     {
         debugRxState = -200;
-        LOGF(" Valid response, errorCode: %d\r\n",errorCode);
+        LOGF(" Valid response, errorCode: %d\r\n", errorCode);
         return true;
     }
     else
