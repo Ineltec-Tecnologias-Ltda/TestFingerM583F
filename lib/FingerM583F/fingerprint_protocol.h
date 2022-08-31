@@ -21,16 +21,10 @@ extern "C"
 
     typedef enum command_type
     {
-        cmd_automatic = 0,
         cmd_fingerprint = 0x01,
         cmd_system = 0x02,
         cmd_maintenance = 0x03
     } FP_cmd_type;
-
-    typedef enum automatic_type_word
-    {
-        fp_automatic_enroll = 0x03, // users manual page 22
-    } FP_automatic_cmd_word;
 
     typedef enum fingerprint_type_word
     {

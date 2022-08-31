@@ -19,5 +19,6 @@ bool readId();
 bool autoEnroll();
 bool matchTemplate();
 bool ledControl(uint8_t *params);
+bool moduleReset();
 
 extern S16Bit debugRxState;

@@ -79,6 +79,7 @@ void loop()
             }
             else if (headerHttp.indexOf("Upload") >= 0)
             {
+              moduleReset();
               Log.println("Upload");
             }
             else if (headerHttp.indexOf("Download") >= 0)

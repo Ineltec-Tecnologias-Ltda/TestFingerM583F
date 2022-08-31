@@ -26,14 +26,15 @@ const U8Bit MatchResult[]{cmd_fingerprint, fp_match_result, 7};
 const U8Bit FingerIsTouch[]{cmd_fingerprint, fp_query_slot_status, 7};
 const U8Bit Enroll[]{cmd_fingerprint, fp_enroll_start, 8};
 const U8Bit EnrollResult[]{cmd_fingerprint, fp_enroll_result, 8};
+const U8Bit ModuleReset[]{cmd_system, sys_reset, 7};
+
 
 /// Tests if Finger Module is responsive
 // @see Users Manual page 49
 bool heartbeat()
 {
-    sendCommandHeader(HeartBeat);
-    writeBufferPlusCheckSum(dataBuffer, 6);
-
+    sendSimpleCommand(HeartBeat);
+ 
     return FP_protocol_recv_complete_frame();
 }
 
@@ -47,12 +48,17 @@ bool ledControl(uint8_t *params)
     return FP_protocol_recv_complete_frame();
 }
 
+// @see Users Manual page 40
+bool moduleReset()
+{
+    sendSimpleCommand(ModuleReset);
+    return FP_protocol_recv_complete_frame();
+}
+
 // @see Users Manual page 48
 bool readId()
 {
-
-    sendCommandHeader(ReadId);
-    writeBufferPlusCheckSum(dataBuffer, 6);
+    sendSimpleCommand(ReadId);
     if (FP_protocol_recv_complete_frame() == true && errorCode == 0 && answerDataLength > 0)
     {
         debugRxState = -1000;
@@ -76,8 +82,7 @@ bool fingerWaiting()
         {
             fingerInterrupt = false;
             delay(30);
-            sendCommandHeader(FingerIsTouch);
-            writeBufferPlusCheckSum(dataBuffer, 6);
+            sendSimpleCommand(FingerIsTouch); // @see Users Manual page 32
             if (FP_protocol_recv_complete_frame() == true && errorCode == 0)
                 if (dataBuffer[0] == 1)
                 { // Finger is placed on module
@@ -158,9 +163,6 @@ bool autoEnroll()
         {
             errorMessage = TryAgain;
             LOGF("TryAgain?  Error:  %04X\r\n", errorCode);
-            delay(100);
-            writeBufferPlusCheckSum(dataBuffer, 10);
-            delay(100);
             return false;
         }
     }
@@ -188,8 +190,7 @@ bool matchTemplate()
         if (start)
         {
             sum = 0;
-            sendCommandHeader(MatchTemplate);
-            writeBufferPlusCheckSum(dataBuffer, 6);
+            sendSimpleCommand(MatchTemplate);
             if (FP_protocol_recv_complete_frame() && errorCode == 0)
             {
                 retry = 10;
@@ -203,8 +204,7 @@ bool matchTemplate()
         else
         {
             sum = 0;
-            sendCommandHeader(MatchResult);
-            writeBufferPlusCheckSum(dataBuffer, 6);
+            sendSimpleCommand(MatchResult);
             if (!FP_protocol_recv_complete_frame())
                 delay(100);
             else
