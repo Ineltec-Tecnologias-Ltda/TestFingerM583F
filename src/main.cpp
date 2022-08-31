@@ -88,7 +88,7 @@ void loop()
             else if (headerHttp.indexOf("Heartbeat") >= 0)
             {
               if (heartbeat())
-              Log.println("Heartbeat");
+              Log.println("Finger Module ok");
               else    Log.println("No module response!!");
             }
             else if (headerHttp.indexOf("Module") >= 0)

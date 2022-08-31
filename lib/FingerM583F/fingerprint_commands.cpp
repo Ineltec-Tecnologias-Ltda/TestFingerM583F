@@ -135,6 +135,7 @@ bool autoEnroll()
                 {
                     // TODO implement callback!!!
                     errorMessage = Enrolling;
+                     delay(100);
                 }
             }
             else if (errorCode = FP_DEVICE_TIMEOUT_ERROR)
@@ -160,77 +161,6 @@ bool autoEnroll()
             delay(100);
             writeBufferPlusCheckSum(dataBuffer, 10);
             delay(100);
-            return false;
-        }
-    }
-    LOG("Timeout Error");
-    errorMessage = TimeoutError;
-
-    return false;
-}
-
-/// Returns true if match ok, and sets slotId with template position inside finger module
-// otherwise sets errorCode and errorMessage
-// @see Users Manual pages 13 and 14
-bool enroll()
-{
-    U8Bit regIdx = 1;
-    if (!fingerWaiting())
-        return false;
-
-    sendCommandHeader(Enroll);
-
-    dataBuffer[6] = regIdx;
-    writeBufferPlusCheckSum(dataBuffer, 7);
-
-    bool start = true;
-    int8_t retry = 7;
-
-    while (retry-- > 0)
-    {
-        if (FP_protocol_recv_complete_frame())
-        {
-            if (start)
-            {
-                start = false;
-                delay(100);
-                sendCommandHeader(Enroll);
-                writeBufferPlusCheckSum(dataBuffer, 7);
-            }
-            else if (errorCode == 0)
-            {
-                LOGF("State: %d    Enroll Progress: %d %\r\n", dataBuffer[10], dataBuffer[13]);
-                if ((100 == dataBuffer[13]) && (dataBuffer[10] == 0xff))
-                {
-                    slotID = dataBuffer[12];
-                    LOGF("Template slot: %d\r\n", slotID);
-                    errorMessage = EnrollOk;
-                    return true;
-                }
-                else
-                {
-                    // TODO implement callback!!!
-                    regIdx++;
-                    delay(100);
-                    sendCommandHeader(EnrollResult);
-                    writeBufferPlusCheckSum(dataBuffer, 7);
-                    errorMessage = Enrolling;
-                }
-            }
-            else
-            {
-                errorMessage = TryAgain;
-                LOGF("Enroll Error: %04X\r\n", errorCode);
-                if (errorCode == 8)
-                    delay(100);
-                else
-                    return false;
-            }
-        }
-        else
-        {
-            errorMessage = TryAgain;
-            LOGF("TryAgain?  Error: %04X\r\n", errorCode);
             return false;
         }
     }

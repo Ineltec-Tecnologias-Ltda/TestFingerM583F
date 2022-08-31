@@ -171,7 +171,7 @@ bool FP_protocol_recv_complete_frame()
     if (((U8Bit)((~sum) + 1)) == 0)
     {
         debugRxState = -200;
-        LOGF(" Cmd response: errorCode: %04X    #bytes=%d\r\n",rtxCommandLow, errorCode,answerDataLength);
+        LOGF(" Cmd response:%02X errorCode: %04X    #bytes=%d\r\n",rtxCommandLow, errorCode,answerDataLength);
         return true;
     }
 
