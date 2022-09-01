@@ -10,7 +10,7 @@ training, attendance and other ide ntity fields;
 
 # About this Library and example
 
-This software is based on documents received from the manufaturer ![Guangzhou Gouku Technology Co., Ltd](https://gocool.en.alibaba.com/company_profile.html?spm=a2700.details.0.0.6c8b5b8emXWpxZ)
+This software is based on documents received from the manufaturer [Guangzhou Gouku Technology Co., Ltd](https://gocool.en.alibaba.com/company_profile.html?spm=a2700.details.0.0.6c8b5b8emXWpxZ).
 
  Table of Contents
 
