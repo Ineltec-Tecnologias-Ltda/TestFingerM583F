@@ -14,7 +14,9 @@ also  [Guangzhou Gouku Technology Co., Ltd](http://www.zyjjhome.com/)
 
 This software is a working example for Arduino + ESP32 processor module + VSCode + PlatformIO extension
 
-The ESP32 module act as a Wi-Fi station, as an access point.
+The ESP32 module act as a Wi-Fi station, as an [access point](assets/ESP32-access-point.webp)
+
+
 Is uses a connected Browser to input commands:
 
 ![Command Screen](assets/browserCommandScreen.jpeg)
