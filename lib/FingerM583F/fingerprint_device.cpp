@@ -90,7 +90,7 @@ void writeBufferPlusCheckSum(U8Bit *data, size_t length)
 	fingerDevice.write((U8Bit)sum);
 }
 
-// Sends Commands with no extra data
+// Sends Commands with no extra data 
 void sendSimpleCommand(const U8Bit *command)
 {
 	sendCommandHeader(command);
