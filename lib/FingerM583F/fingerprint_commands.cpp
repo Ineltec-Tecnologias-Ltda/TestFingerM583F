@@ -17,28 +17,44 @@ const char *TimeoutError = "Timeout Error...";
 const char *TryAgain = "Please Try Again";
 
 /// Commands and command size
-const U8Bit AutoEnroll[]{cmd_fingerprint, fp_auto_enroll, 11};
-const U8Bit HeartBeat[]{cmd_maintenance, maintenance_heart_beat, 7};
-const U8Bit LedControl[]{cmd_system, sys_set_led, 12};
-const U8Bit ReadId[]{cmd_maintenance, maintenance_read_id, 7};
-const U8Bit MatchTemplate[]{cmd_fingerprint, fp_match_start, 7};
-const U8Bit MatchResult[]{cmd_fingerprint, fp_match_result, 7};
-const U8Bit FingerIsTouch[]{cmd_fingerprint, fp_query_slot_status, 7};
-const U8Bit Enroll[]{cmd_fingerprint, fp_enroll_start, 8};
-const U8Bit EnrollResult[]{cmd_fingerprint, fp_enroll_result, 8};
-const U8Bit ModuleReset[]{cmd_system, sys_reset, 7};
+// @ see Command set summary pages 9-12
+Command AutoEnroll{cmd_fingerprint, fp_auto_enroll, 4};
+Command HeartBeat{cmd_maintenance, maintenance_heart_beat, 0};
+Command LedControl{cmd_system, sys_set_led, 5};
+Command ReadId{cmd_maintenance, maintenance_read_id, 0};
+Command MatchTemplate{cmd_fingerprint, fp_match_start, 0};
+Command MatchResult{cmd_fingerprint, fp_match_result, 0};
+Command FingerIsTouch{cmd_fingerprint, fp_query_slot_status, 0};
+Command Enroll{cmd_fingerprint, fp_enroll_start, 1};
+Command EnrollResult{cmd_fingerprint, fp_enroll_result, 1};
+Command ModuleReset{cmd_system, sys_reset, 0};
+Command SendTemplateStart{cmd_fingerprint, fp_start_send_template, 4};
+Command SendTemplateData{cmd_fingerprint, fp_send_template_data, 0x89}; //0x89 is the maximum to be sent at each packet
+Command ReceiveTemplateStart{cmd_fingerprint, fp_start_get_template, 2};
+Command ReceiveTemplateData{cmd_fingerprint, fp_get_template_data, 2}; 
 
-/// @brief Sends Commands with no extra data and receives response from module
+/// @brief Sends Commands with no extra data, and receives response from module
 // @see page Command set summary on pages 9 to 12 on users manual
-/// @param command 
-/// @param len == the number of bytes extra data after command
+/// @param command Only commands with fixed extra data bytes after header
 /// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
 /// if false errorCode and  errorMessage are set
-bool sendCommandReceiveResponse(const U8Bit *command,U8Bit len=0)
+bool sendCommandReceiveResponse(Command command)
 {	
-	len+=6;
-	sendCommandHeader(command);
-	writeBufferPlusCheckSum(dataBuffer, len);
+	sendCommandHeader(command,command[2]);
+	writeBufferPlusCheckSum(command[2]);
+	return receiveCompleteResponse();
+}
+
+/// @brief Sends Commands with extra data, and receives response from module
+// @see page Command set summary on pages 9 to 12 on users manual
+/// @param command  Fix commands with variable extra data bytes after header(like 5.21 Fingerprint feature data download)
+/// @param total number of bytes to send after header
+/// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
+/// if false errorCode and  errorMessage are set
+bool sendCommandReceiveResponse(Command command,size_t length)
+{	
+	sendCommandHeader(command,length);
+	writeBufferPlusCheckSum(length);
 	return receiveCompleteResponse();
 }
 
@@ -49,29 +65,33 @@ bool sendCommandReceiveResponse(const U8Bit *command,U8Bit len=0)
 /// if false errorCode and  errorMessage are set
 bool heartbeat()
 {
-    return sendCommandReceiveResponse(HeartBeat,0);
+    return sendCommandReceiveResponse(HeartBeat);
 }
 
 
 /// @brief This is an example of how to send a command with aditional data
 /// @param params == 5 bytes as state on  Users Manual page 45
-/// @return true if 
+/// @return  true if command was accepted from module
+/// if false errorCode and  errorMessage are set
 bool ledControl(uint8_t *params)
 {
-    memcpy(dataBuffer,params,5);
-    return sendCommandReceiveResponse(LedControl,5);
+    memcpy(dataBuffer,params,LedControl[2]);
+    return sendCommandReceiveResponse(LedControl,LedControl[2]);
 }
 
-// @see Users Manual page 405
+
+/// @brief This is an example of how to send a command without aditional data
+/// @return  true if command was accepted from module
+/// if false errorCode and  errorMessage are set
 bool moduleReset()
 {
-    return sendCommandReceiveResponse(ModuleReset,0);
+    return sendCommandReceiveResponse(ModuleReset);
 }
 
 // @see Users Manual page 48
 bool readId()
 {
-    if (sendCommandReceiveResponse(ReadId,0) == true && errorCode == 0 && answerDataLength > 0)
+    if (sendCommandReceiveResponse(ReadId) == true && errorCode == 0 && answerDataLength > 0)
     {
         debugRxState = -1000;
         /* gets Ascii value module id */
@@ -95,7 +115,7 @@ bool fingerWaiting()
             fingerInterrupt = false;
             delay(30);
             // @see Users Manual page 32
-            if ( sendCommandReceiveResponse(FingerIsTouch,0) == true && errorCode == 0)
+            if ( sendCommandReceiveResponse(FingerIsTouch) == true && errorCode == 0)
                 if (dataBuffer[0] == 1)
                 { // Finger is placed on module
                     LOG("Finger detected!!");
@@ -120,7 +140,7 @@ bool autoEnroll()
     if (!fingerWaiting())
         return false;
 
-    sendCommandHeader(AutoEnroll);
+    sendCommandHeader(AutoEnroll,AutoEnroll[2]);
 
     // enrollPara.enroll_mode = 0x01 will indicate that user must lift finger and press again during enrollment
     dataBuffer[6] = 1;
@@ -131,7 +151,7 @@ bool autoEnroll()
     // enrollPara.slotID = 0xFFFF ,will be automatically assigned by the system
     dataBuffer[8] = 0xff;
     dataBuffer[9] = 0xff;
-    writeBufferPlusCheckSum(dataBuffer, 10);
+    writeBufferPlusCheckSum(AutoEnroll[2]);
 
     int8_t retry = 7;
 
@@ -203,7 +223,7 @@ bool matchTemplate()
         if (start)
         {
             sum = 0;
-            if (sendCommandReceiveResponse(MatchTemplate,0) && errorCode == 0)
+            if (sendCommandReceiveResponse(MatchTemplate) && errorCode == 0)
             {
                 retry = 10;
                 start = false;
@@ -216,7 +236,7 @@ bool matchTemplate()
         else
         {
             sum = 0;
-            if (!sendCommandReceiveResponse(MatchResult,0))
+            if (!sendCommandReceiveResponse(MatchResult))
                 delay(100);
             else
             {

@@ -22,7 +22,7 @@ void fingerModuleInterrupt()
 
 /// @brief Symbols ENABLE_DEBUG_FINGER,FINGER_PORT, FINGER_VIN_GPIO, FINGER_INT_GPIO are defined on file platformio.ini
 /// This method has to be called before any other
-/// @param baud 
+/// @param baud
 void commFingerInit(unsigned long baud)
 {
 	pinMode(FINGER_VIN_GPIO, OUTPUT);
@@ -41,7 +41,7 @@ void commFingerInit(unsigned long baud)
 }
 
 /// @brief /* read one byte and adds to checksum*/
-/// @param data == pointer to received data byte
+/// @param data  pointer to received data byte
 /// @return FP_OK or FP_DEVICE_TIMEOUT_ERROR
 S32Bit FP_device_read_one_byte(U8Bit *data)
 {
@@ -62,31 +62,43 @@ S32Bit FP_device_read_one_byte(U8Bit *data)
 }
 
 /// @brief Sends Command header to serial port and prepares command buffer
-/// @param command == pointer to command data buffer
-void sendCommandHeader(const U8Bit *command)
+/// @param command pointer to command data buffer
+///  @param length total of data bytes to be sent after header
+void sendCommandHeader(Command command, const unsigned char length)
 {
 	// Total Command lenght
 	txHeader[8] = 0;
-	txHeader[9] = command[2];
+	txHeader[9] = length+7;
 
 	sum = 0;
-	writeBufferPlusCheckSum(txHeader, 10);
+
+	U8Bit *data = txHeader;
+	U8Bit x = 0;
+	for (uint i = 0; i < 10; i++)
+	{
+		x = *data++;
+		sum += x;
+		fingerDevice.write(x);
+	};
+	sum = (U8Bit)((~sum) + 1);
+	sumTxDebug = (U8Bit)sum;
+	fingerDevice.write((U8Bit)sum);
 	memset(dataBuffer, 0, 8); // Sets Check password to zeroes
 
 	// Command data
 	dataBuffer[4] = command[0];
-	dataBuffer[5] = command[1];
+	dataBuffer[5] =  command[1];
 
 	sum = 0;
 }
 
 /// @brief  writes data to serial port + calculate and send checksum
-/// @param data == pointer to data buffer or header
-/// @param length == size of data buffer or header to be output to serial port
-void writeBufferPlusCheckSum(U8Bit *data, size_t length)
+/// @param length  bytes of "dataBuffer" to be output to serial port
+void writeBufferPlusCheckSum(unsigned char length)
 {
 	U8Bit x = 0;
-	for (uint i = 0; i < length; i++)
+	U8Bit *data = dataBuffer;
+	for (uint i = 1; i < length; i++)
 	{
 		x = *data++;
 		sum += x;

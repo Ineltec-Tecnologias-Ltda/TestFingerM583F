@@ -5,6 +5,12 @@
 #ifdef __cplusplus   
 extern "C" {   
 #endif
+/// @brief Commands and command size.
+/// @ see Command set summary pages 9-12
+/// first byte is command type
+/// second byte is command code
+/// third byte is the total number of bytes to send after header
+typedef const unsigned char  Command[3];
 
 typedef    signed  char        S8Bit;               
 typedef  unsigned  char        U8Bit;               
