@@ -48,7 +48,9 @@ bool sendCommandReceiveResponse(Command command)
 /// @brief Sends Commands with extra data, and receives response from module
 // @see page Command set summary on pages 9 to 12 on users manual
 /// @param command  Fix commands with variable extra data bytes after header(like 5.21 Fingerprint feature data download)
-/// @param total number of bytes to send after header
+/// @param length number of extra bytes to send after
+/// "dataBuffer" has to be filled with data( starting at index 6) to be sent 
+///  first 6 bytes are added by protocol methods with check password (4)+ command(2) 
 /// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
 /// if false errorCode and  errorMessage are set
 bool sendCommandReceiveResponse(Command command,size_t length)
@@ -70,7 +72,7 @@ bool heartbeat()
 
 
 /// @brief This is an example of how to send a command with aditional data
-/// @param params == 5 bytes as state on  Users Manual page 45
+/// @param params == 5 bytes as described on  Users Manual page 45
 /// @return  true if command was accepted from module
 /// if false errorCode and  errorMessage are set
 bool ledControl(uint8_t *params)
@@ -88,7 +90,11 @@ bool moduleReset()
     return sendCommandReceiveResponse(ModuleReset);
 }
 
-// @see Users Manual page 48
+
+/// @brief see Users Manual page 48
+/// This is an example of how to send a command without aditional data and receive data from module
+/// @return  true if command was accepted from module,  "errorCode" has to be == 0 "answerDataLength" > 0
+/// if false errorCode and  errorMessage are set
 bool readId()
 {
     if (sendCommandReceiveResponse(ReadId) == true && errorCode == 0 && answerDataLength > 0)

@@ -66,9 +66,9 @@ S32Bit FP_device_read_one_byte(U8Bit *data)
 ///  @param length total of data bytes to be sent after header
 void sendCommandHeader(Command command, const unsigned char length)
 {
-	// Total Command lenght
+	// Total Command length including final checksum
 	txHeader[8] = 0;
-	txHeader[9] = length+7;
+	txHeader[9] = length+8;
 
 	sum = 0;
 
@@ -96,9 +96,10 @@ void sendCommandHeader(Command command, const unsigned char length)
 /// @param length  bytes of "dataBuffer" to be output to serial port
 void writeBufferPlusCheckSum(unsigned char length)
 {
+	length+=7;  //adds check password (4)+ command(2) + checksum(1) sizes
 	U8Bit x = 0;
 	U8Bit *data = dataBuffer;
-	for (uint i = 1; i < length; i++)
+	for (uint i = 0; i < length; i++)
 	{
 		x = *data++;
 		sum += x;

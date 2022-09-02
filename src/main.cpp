@@ -79,7 +79,6 @@ void loop()
             }
             else if (headerHttp.indexOf("Upload") >= 0)
             {
-              moduleReset();
               Log.println("Upload");
             }
             else if (headerHttp.indexOf("Download") >= 0)
@@ -89,8 +88,12 @@ void loop()
             else if (headerHttp.indexOf("Heartbeat") >= 0)
             {
               if (heartbeat())
-              Log.println("Finger Module ok");
-              else    Log.println("No module response!!");
+              {
+                moduleReset(); // This is only to test this command
+                Log.println("Finger Module ok");
+              }
+              else
+                Log.println("No module response!!");
             }
             else if (headerHttp.indexOf("Module") >= 0)
             {
