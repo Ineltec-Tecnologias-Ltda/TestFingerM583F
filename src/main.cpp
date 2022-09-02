@@ -17,7 +17,7 @@ void setup()
   WiFi.softAP(ssid, password);
 
   IPAddress IP = WiFi.softAPIP();
-  Log.printf("AP IP address: ");
+  Log.print("\r\nAP IP address: ");
   Log.println(IP);
 
   server.begin();

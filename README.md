@@ -12,9 +12,15 @@ training, attendance and other ide ntity fields;
 This software is based on documents received from the manufaturer [Guangzhou Gouku Technology Co., Ltd](https://gocool.en.alibaba.com/company_profile.html?spm=a2700.details.0.0.6c8b5b8emXWpxZ).
 also  [Guangzhou Gouku Technology Co., Ltd](http://www.zyjjhome.com/)
 
+Documents received and extensivily referenced on methods are: 
+
+* [Fingerprint  product specification](assets/ESP32-access-point.webp)
+* [Fingerprit user's manual](assets/user's%20manual_Gouku.pdf)
+
+
 This software is a working example for Arduino + ESP32 processor module + VSCode + PlatformIO extension
 
-The ESP32 module act as a Wi-Fi station access poin :
+The ESP32 module act as a Wi-Fi station access point :
 
 ![access point](assets/ESP32-access-point.webp)
 
