@@ -52,7 +52,7 @@ bool sendCommandReceiveResponse(Command command)
 /// "dataBuffer" has to be filled with data( starting at index 6) to be sent 
 ///  first 6 bytes are added by protocol methods with check password (4)+ command(2) 
 /// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
-/// if false errorCode and  errorMessage are set
+/// if false "errorCode" and  "errorMessage" are set
 bool sendCommandReceiveResponse(Command command,size_t length)
 {	
 	sendCommandHeader(command,length);
@@ -64,7 +64,7 @@ bool sendCommandReceiveResponse(Command command,size_t length)
 /// @see Users Manual page 49
 ///This is an example of how to send a command without aditional data
 /// @return  true if command was accepted from module
-/// if false errorCode and  errorMessage are set
+/// if false "errorCode" and  "errorMessage" are set
 bool heartbeat()
 {
     return sendCommandReceiveResponse(HeartBeat);
@@ -76,7 +76,7 @@ bool heartbeat()
 /// "dataBuffer" (starting at index 6) is filled with "params" 
 ///  first 6 bytes are added by protocol methods with check password (4)+ command(2) 
 /// @return  true if command was accepted from module
-/// if false errorCode and  errorMessage are set
+/// if false "errorCode" and  "errorMessage" are set
 bool ledControl(uint8_t *params)
 {
     memcpy(dataBuffer+6,params,LedControl[2]);
@@ -86,7 +86,7 @@ bool ledControl(uint8_t *params)
 
 /// @brief This is an example of how to send a command without aditional data
 /// @return  true if command was accepted from module
-/// if false errorCode and  errorMessage are set
+/// if false "errorCode" and  "errorMessage" are set
 bool moduleReset()
 {
     return sendCommandReceiveResponse(ModuleReset);
@@ -95,11 +95,11 @@ bool moduleReset()
 
 /// @brief see Users Manual page 48
 /// This is an example of how to send a command without aditional data and receive data from module
-/// @return  true if command was accepted from module,  "errorCode" has to be == 0 "answerDataLength" > 0
-/// if false errorCode and  errorMessage are set
+/// @return  true if command was accepted from module,  "errorCode" has to be == 0 and "answerDataLength" > 0
+/// if false "errorCode" and  "errorMessage" are set
 bool readId()
 {
-    if (sendCommandReceiveResponse(ReadId) == true && errorCode == 0 && answerDataLength > 0)
+    if (sendCommandReceiveResponse(ReadId) == true && errorCode == FP_OK  && answerDataLength > 0)
     {
         debugRxState = -1000;
         /* gets Ascii value module id */
@@ -123,7 +123,7 @@ bool fingerWaiting()
             fingerInterrupt = false;
             delay(30);
             // @see Users Manual page 32
-            if ( sendCommandReceiveResponse(FingerIsTouch) == true && errorCode == 0)
+            if ( sendCommandReceiveResponse(FingerIsTouch) == true && errorCode == FP_OK )
                 if (dataBuffer[0] == 1)
                 { // Finger is placed on module
                     LOG("Finger detected!!");
@@ -213,7 +213,7 @@ bool autoEnroll()
     return false;
 }
 
-/// Returns true if match ok, and sets slotId with template position inside finger module
+/// Returns true if match ok, and sets "slotId" with template position inside finger module
 // otherwise sets errorCode and errorMessage
 // @see Users Manual pages 23 and 24
 bool matchTemplate()
@@ -266,7 +266,7 @@ bool matchTemplate()
                     }
                 }
                 else if (errorCode == COMP_CODE_CMD_NOT_FINISHED || errorCode == FP_DEVICE_TIMEOUT_ERROR)
-                    vTaskDelay(100);
+                    delay(100);
                 else
                 {
                     errorMessage = TryAgain;

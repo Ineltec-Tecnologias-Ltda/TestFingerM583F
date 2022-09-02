@@ -7,20 +7,20 @@ This capacitive fingerprint sensor M583F supports fingerprint capture, image pro
 training, attendance and other ide ntity fields;
 * Private clubs, management software, licensing and other management fields
 
-# About this Library and example
+## About this Library and example
 
 This software is based on documents received from the manufaturer [Guangzhou Gouku Technology Co., Ltd](https://gocool.en.alibaba.com/company_profile.html?spm=a2700.details.0.0.6c8b5b8emXWpxZ).
 also  [Guangzhou Gouku Technology Co., Ltd](http://www.zyjjhome.com/)
 
 Documents received and extensivily referenced on methods are: 
 
-* [Fingerprint  product specification](assets/ESP32-access-point.webp)
+* [Fingerprint product specification](assets/M583F-Gouku.pdf)
 * [Fingerprit user's manual](assets/user's%20manual_Gouku.pdf)
 
 
-This software is a working example for Arduino + ESP32 processor module + VSCode + PlatformIO extension
+This library contais a complete working project example for VSCode+ PlatformIO extension+ Arduino + ESP32 processor module
 
-The ESP32 module act as a Wi-Fi station access point :
+The ESP32 module acts as a Wi-Fi station access point :
 
 ![access point](assets/ESP32-access-point.webp)
 
@@ -32,11 +32,11 @@ Is uses a connected Browser to input commands:
 
 * [Hardware Connections](#hardware)
 * [Installation](#installation)
-* [Lib Methods](#methods)
+* [Lib Methods](#libray-methods)
 * [History](#history)
 * [Credits](#credits)
 
-## Hardware Connections
+## Hardware
 
 On file platformio.ini is defined on what pins module M583F is connected to ESP32 module, change it according to your hardware circuit design:
 
@@ -57,7 +57,7 @@ This project is ready for running:
 * On configurations/Wi-Fi of your cell phone choose "FingerTests" network
 * Open your cell phone brower on address 192.168.4.1 (may be another, check it on debug serial monitor screen)
 
-## Lib Methods
+## Libray Methods
 
 
 
