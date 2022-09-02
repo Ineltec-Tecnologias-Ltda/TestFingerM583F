@@ -1,4 +1,4 @@
-# M583F Fingerprint Module Library
+# About M583F Fingerprint Module
 
 This capacitive fingerprint sensor M583F supports fingerprint capture, image processing, fingerprint storage, fingerprint comparison and so on and  is widely used and suitable for various fingerprint identification systems, such as:
 
@@ -18,14 +18,41 @@ The ESP32 module act as a Wi-Fi station access poin :
 
 ![access point](assets/ESP32-access-point.webp)
 
-
 Is uses a connected Browser to input commands:
 
 ![Command Screen](assets/browserCommandScreen.jpeg)
 
+## Table of Contents
 
- Table of Contents
+* [Hardware Connections](#hardware)
+* [Installation](#installation)
+* [Lib Methods](#methods)
+* [History](#history)
+* [Credits](#credits)
 
-* [Summary](#summary)
+## Hardware Connections
 
-hjhjhj
+On file platformio.ini is defined on what pins module M583F is connected to ESP32 module, change according to your hardware circuit design:
+
+build_flags =
+    -D ENABLE_DEBUG_FINGER=1
+    -D FINGER_PORT=0
+    -D FINGER_VIN_GPIO=13
+    -D FINGER_INT_GPIO=5
+
+## Installation
+
+This project is ready for running:
+
+* Clone the project from GitHub
+* Make the hardware connections
+* Compile and upload software to module
+* Open Plaformio serial monitor
+* On configurations/Wi-Fi of your cell phone choose "FingerTests" network
+* Open your cell phone brower on address 192.168.4.1 (may be another, check it on debug serial monitor screen)
+
+## Lib Methods
+
+
+
+
