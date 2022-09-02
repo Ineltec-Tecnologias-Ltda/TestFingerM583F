@@ -28,38 +28,41 @@ const U8Bit Enroll[]{cmd_fingerprint, fp_enroll_start, 8};
 const U8Bit EnrollResult[]{cmd_fingerprint, fp_enroll_result, 8};
 const U8Bit ModuleReset[]{cmd_system, sys_reset, 7};
 
+// Sends Commands with no extra data
+// len is the number of bytes extra data after command
+// @see page Command set summary on pages 9 to 12 on users manual
+bool sendCommandReceiveResponse(const U8Bit *command,U8Bit len=0)
+{	
+	len+=6;
+	sendCommandHeader(command);
+	writeBufferPlusCheckSum(dataBuffer, len);
+	return receiveCompleteResponse();
+}
 
 /// Tests if Finger Module is responsive
 // @see Users Manual page 49
 bool heartbeat()
 {
-    sendSimpleCommand(HeartBeat);
- 
-    return FP_protocol_recv_complete_frame();
+    return sendCommandReceiveResponse(HeartBeat,0);
 }
 
 // @see Users Manual page 45
 bool ledControl(uint8_t *params)
 {
-    sendCommandHeader(LedControl);
-
-    writeBuffer(dataBuffer, 6);
-    writeBufferPlusCheckSum(params, 5);
-    return FP_protocol_recv_complete_frame();
+    memcpy(dataBuffer,params,5);
+    return sendCommandReceiveResponse(LedControl,5);
 }
 
-// @see Users Manual page 40
+// @see Users Manual page 405
 bool moduleReset()
 {
-    sendSimpleCommand(ModuleReset);
-    return FP_protocol_recv_complete_frame();
+    return sendCommandReceiveResponse(ModuleReset,0);
 }
 
 // @see Users Manual page 48
 bool readId()
 {
-    sendSimpleCommand(ReadId);
-    if (FP_protocol_recv_complete_frame() == true && errorCode == 0 && answerDataLength > 0)
+    if (sendCommandReceiveResponse(ReadId,0) == true && errorCode == 0 && answerDataLength > 0)
     {
         debugRxState = -1000;
         /* gets Ascii value module id */
@@ -82,8 +85,8 @@ bool fingerWaiting()
         {
             fingerInterrupt = false;
             delay(30);
-            sendSimpleCommand(FingerIsTouch); // @see Users Manual page 32
-            if (FP_protocol_recv_complete_frame() == true && errorCode == 0)
+            // @see Users Manual page 32
+            if ( sendCommandReceiveResponse(FingerIsTouch,0) == true && errorCode == 0)
                 if (dataBuffer[0] == 1)
                 { // Finger is placed on module
                     LOG("Finger detected!!");
@@ -124,7 +127,7 @@ bool autoEnroll()
 
     while (retry-- > 0)
     {
-        if (FP_protocol_recv_complete_frame())
+        if (receiveCompleteResponse())
         {
             if (errorCode == 0)
             {
@@ -190,8 +193,7 @@ bool matchTemplate()
         if (start)
         {
             sum = 0;
-            sendSimpleCommand(MatchTemplate);
-            if (FP_protocol_recv_complete_frame() && errorCode == 0)
+            if (sendCommandReceiveResponse(MatchTemplate,0) && errorCode == 0)
             {
                 retry = 10;
                 start = false;
@@ -204,8 +206,7 @@ bool matchTemplate()
         else
         {
             sum = 0;
-            sendSimpleCommand(MatchResult);
-            if (!FP_protocol_recv_complete_frame())
+            if (!sendCommandReceiveResponse(MatchResult,0))
                 delay(100);
             else
             {

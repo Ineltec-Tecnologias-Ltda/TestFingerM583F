@@ -32,7 +32,7 @@ Is uses a connected Browser to input commands:
 
 ## Hardware Connections
 
-On file platformio.ini is defined on what pins module M583F is connected to ESP32 module, change according to your hardware circuit design:
+On file platformio.ini is defined on what pins module M583F is connected to ESP32 module, change it according to your hardware circuit design:
 
 build_flags =
     -D ENABLE_DEBUG_FINGER=1

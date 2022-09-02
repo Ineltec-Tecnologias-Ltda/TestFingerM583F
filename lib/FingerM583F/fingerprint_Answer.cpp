@@ -104,7 +104,7 @@ bool FP_protocol_get_frame_head()
 ///   - Sets "errorCode" with received code ( codes list at "fingerprint_protocol.h")
 ///   - Places all received data to "dataBuffer"
 ///   - Sets "answerDataLength" with received data size
-bool FP_protocol_recv_complete_frame()
+bool receiveCompleteResponse()
 {
     U8Bit command = 0;
     U8Bit timeout = 10;

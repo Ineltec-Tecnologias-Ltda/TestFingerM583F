@@ -117,7 +117,7 @@ extern "C"
 #define COMP_CODE_DATA_BUFFER_OVERFLOW (0x18)
 #define COMP_CODE_OTHER_ERROR (0xFF)
 
-    bool FP_protocol_recv_complete_frame();
+    bool receiveCompleteResponse();
     static S32Bit FP_action_get_errorCode(U8Bit *buffer);
 
     extern U8Bit dataBuffer[];
