@@ -68,7 +68,7 @@ void sendCommandHeader(Command command, const unsigned char length)
 {
 	// Total Command length including final checksum
 	txHeader[8] = 0;
-	txHeader[9] = length+8;
+	txHeader[9] = length+7;
 
 	sum = 0;
 
@@ -83,7 +83,7 @@ void sendCommandHeader(Command command, const unsigned char length)
 	sum = (U8Bit)((~sum) + 1);
 	sumTxDebug = (U8Bit)sum;
 	fingerDevice.write((U8Bit)sum);
-	memset(dataBuffer, 0, 8); // Sets Check password to zeroes
+	memset(dataBuffer, 0, 4); // Sets Check password to zeroes
 
 	// Command data
 	dataBuffer[4] = command[0];
@@ -96,7 +96,7 @@ void sendCommandHeader(Command command, const unsigned char length)
 /// @param length  bytes of "dataBuffer" to be output to serial port
 void writeBufferPlusCheckSum(unsigned char length)
 {
-	length+=7;  //adds check password (4)+ command(2) + checksum(1) sizes
+	length+=6;  //adds check password (4)+ command(2) 
 	U8Bit x = 0;
 	U8Bit *data = dataBuffer;
 	for (uint i = 0; i < length; i++)

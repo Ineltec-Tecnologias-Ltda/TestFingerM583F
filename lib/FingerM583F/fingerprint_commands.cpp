@@ -73,12 +73,14 @@ bool heartbeat()
 
 /// @brief This is an example of how to send a command with aditional data
 /// @param params == 5 bytes as described on  Users Manual page 45
+/// "dataBuffer" (starting at index 6) is filled with "params" 
+///  first 6 bytes are added by protocol methods with check password (4)+ command(2) 
 /// @return  true if command was accepted from module
 /// if false errorCode and  errorMessage are set
 bool ledControl(uint8_t *params)
 {
-    memcpy(dataBuffer,params,LedControl[2]);
-    return sendCommandReceiveResponse(LedControl,LedControl[2]);
+    memcpy(dataBuffer+6,params,LedControl[2]);
+    return sendCommandReceiveResponse(LedControl);
 }
 
 
