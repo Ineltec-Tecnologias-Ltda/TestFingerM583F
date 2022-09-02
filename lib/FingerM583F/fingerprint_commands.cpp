@@ -28,9 +28,12 @@ const U8Bit Enroll[]{cmd_fingerprint, fp_enroll_start, 8};
 const U8Bit EnrollResult[]{cmd_fingerprint, fp_enroll_result, 8};
 const U8Bit ModuleReset[]{cmd_system, sys_reset, 7};
 
-// Sends Commands with no extra data
-// len is the number of bytes extra data after command
+/// @brief Sends Commands with no extra data and receives response from module
 // @see page Command set summary on pages 9 to 12 on users manual
+/// @param command 
+/// @param len == the number of bytes extra data after command
+/// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
+/// if false errorCode and  errorMessage are set
 bool sendCommandReceiveResponse(const U8Bit *command,U8Bit len=0)
 {	
 	len+=6;
@@ -39,14 +42,20 @@ bool sendCommandReceiveResponse(const U8Bit *command,U8Bit len=0)
 	return receiveCompleteResponse();
 }
 
-/// Tests if Finger Module is responsive
-// @see Users Manual page 49
+/// @brief Tests if Finger Module is responsive 
+/// @see Users Manual page 49
+///This is an example of how to send a command without aditional data
+/// @return  true if command was accepted from module
+/// if false errorCode and  errorMessage are set
 bool heartbeat()
 {
     return sendCommandReceiveResponse(HeartBeat,0);
 }
 
-// @see Users Manual page 45
+
+/// @brief This is an example of how to send a command with aditional data
+/// @param params == 5 bytes as state on  Users Manual page 45
+/// @return true if 
 bool ledControl(uint8_t *params)
 {
     memcpy(dataBuffer,params,5);
@@ -102,9 +111,10 @@ bool fingerWaiting()
     return false;
 }
 
-/// Returns true if match ok, and sets slotId with template position inside finger module
-// otherwise sets errorCode and errorMessage
+/// @brief Returns true if match ok
 // @see Users Manual pages 22 and 23
+/// @return if true "slotID" is where the saved finger template was saved inside module
+/// if false errorCode and  errorMessage are set
 bool autoEnroll()
 {
     if (!fingerWaiting())

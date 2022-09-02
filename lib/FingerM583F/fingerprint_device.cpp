@@ -20,13 +20,18 @@ void fingerModuleInterrupt()
 	fingerInterrupt = true;
 }
 
+/// @brief Symbols ENABLE_DEBUG_FINGER,FINGER_PORT, FINGER_VIN_GPIO, FINGER_INT_GPIO are defined on file platformio.ini
+/// This method has to be called before any other
+/// @param baud 
 void commFingerInit(unsigned long baud)
 {
 	pinMode(FINGER_VIN_GPIO, OUTPUT);
+	pinMode(FINGER_INT_GPIO, INPUT);
+
 	// Turns on MosFet to powerup Finger Module
 	digitalWrite(FINGER_VIN_GPIO, HIGH);
 
-	pinMode(FINGER_INT_GPIO, INPUT);
+	/// module sends interrupt signal when finger is touched
 	attachInterrupt(FINGER_INT_GPIO, fingerModuleInterrupt, RISING);
 
 	fingerDevice.begin(baud, SERIAL_8N1, 3, 1);
@@ -35,7 +40,9 @@ void commFingerInit(unsigned long baud)
 	delay(100);
 }
 
-/* read one byte and adds to checksum*/
+/// @brief /* read one byte and adds to checksum*/
+/// @param data == pointer to received data byte
+/// @return FP_OK or FP_DEVICE_TIMEOUT_ERROR
 S32Bit FP_device_read_one_byte(U8Bit *data)
 {
 	int bytesAvailable = 0;
@@ -54,7 +61,8 @@ S32Bit FP_device_read_one_byte(U8Bit *data)
 	return FP_DEVICE_TIMEOUT_ERROR;
 }
 
-// Sends Command header and prepares command buffer
+/// @brief Sends Command header to serial port and prepares command buffer
+/// @param command == pointer to command data buffer
 void sendCommandHeader(const U8Bit *command)
 {
 	// Total Command lenght
@@ -72,7 +80,9 @@ void sendCommandHeader(const U8Bit *command)
 	sum = 0;
 }
 
-// writes data + calculate and send checksum
+/// @brief  writes data to serial port + calculate and send checksum
+/// @param data == pointer to data buffer or header
+/// @param length == size of data buffer or header to be output to serial port
 void writeBufferPlusCheckSum(U8Bit *data, size_t length)
 {
 	U8Bit x = 0;
@@ -85,16 +95,4 @@ void writeBufferPlusCheckSum(U8Bit *data, size_t length)
 	sum = (U8Bit)((~sum) + 1);
 	sumTxDebug = (U8Bit)sum;
 	fingerDevice.write((U8Bit)sum);
-}
-
-// writes data + calculate checksum
-void writeBuffer(U8Bit *data, size_t length)
-{
-	U8Bit x = 0;
-	for (uint i = 0; i < length; i++)
-	{
-		x = *data++;
-		sum += x;
-		fingerDevice.write(x);
-	};
 }
