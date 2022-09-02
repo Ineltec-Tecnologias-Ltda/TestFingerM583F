@@ -87,13 +87,6 @@ void writeBufferPlusCheckSum(U8Bit *data, size_t length)
 	fingerDevice.write((U8Bit)sum);
 }
 
-// Sends Commands with no extra data 
-void sendSimpleCommand(const U8Bit *command)
-{
-	sendCommandHeader(command);
-	writeBufferPlusCheckSum(dataBuffer, 6);
-}
-
 // writes data + calculate checksum
 void writeBuffer(U8Bit *data, size_t length)
 {
