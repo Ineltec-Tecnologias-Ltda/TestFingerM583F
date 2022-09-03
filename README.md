@@ -6,7 +6,7 @@
   - [Hardware](#hardware)
   - [Installation](#installation)
   - [Libray Methods](#libray-methods)
-    - [Informations from sendCommandReceiveResponse() on public variables:](#informations-from-sendcommandreceiveresponse-on-public-variables)
+  - [Informations from sendCommandReceiveResponse() on public variables](#informations-from-sendcommandreceiveresponse-on-public-variables)
   - [Credits](#credits)
 
 ## About M583F Fingerprint Module
@@ -92,6 +92,7 @@ Command SendTemplateStart{cmd_fingerprint, fp_start_send_template, 4};// @see us
 Command SendTemplateData{cmd_fingerprint, fp_send_template_data, 0x89}; //0x89 is the maximum to be sent at each packet
 Command ReceiveTemplateStart{cmd_fingerprint, fp_start_get_template, 2}; // @see users manual page 38
 Command ReceiveTemplateData{cmd_fingerprint, fp_get_template_data, 2}; 
+Command DeleteTemplates{cmd_fingerprint, fp_delete_templates, 3}; // @see users manual page 33
 
 /// @brief Sends Commands with no extra data, and receives response from module
 // @see page Command set summary on pages 9 to 12 on users manual
@@ -112,7 +113,7 @@ bool sendCommandReceiveResponse(Command command);
 bool sendCommandReceiveResponse(Command command,size_t length);
 ```
 
-### Informations from sendCommandReceiveResponse() on public variables:
+## Informations from sendCommandReceiveResponse() on public variables
 
 ```C++
 
