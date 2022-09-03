@@ -1,4 +1,14 @@
-# About M583F Fingerprint Module
+# Table of Contents
+
+* [About M583F Fingerprint Module](#about-m583f-fingerprint-module)
+* [About this Library and example](#about-this-library-and-example)
+* [Table of Contents](#table-of-contents)
+* [Hardware](#hardware)
+* [Installation](#installation)
+* [Libray Methods](#libray-methods)
+* [Credits](#credits)
+
+## About M583F Fingerprint Module
 
 This capacitive fingerprint sensor M583F supports fingerprint capture, image processing, fingerprint storage, fingerprint comparison and so on and  is widely used and suitable for various fingerprint identification systems, such as:
 
@@ -25,16 +35,6 @@ The ESP32 module acts as a Wi-Fi station access point :
 Is uses a connected Browser to input commands:
 
 ![Command Screen](assets/browserCommandScreen.jpeg)
-
-## Table of Contents
-
-* [About M583F Fingerprint Module](#about-m583f-fingerprint-module)
-* [About this Library and example](#about-this-library-and-example)
-* [Table of Contents](#table-of-contents)
-* [Hardware](#hardware)
-* [Installation](#installation)
-* [Libray Methods](#libray-methods)
-* [Credits](#credits)
 
 ## Hardware
 
