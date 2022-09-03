@@ -16,8 +16,8 @@ const char *Enrolling = "Enrolling...";
 const char *TimeoutError = "Timeout Error...";
 const char *TryAgain = "Please Try Again";
 
-/// Commands and command size
-// @ see Command set summary pages 9-12
+/// Command codes and extra data size
+/// @see users manual Command set summary pages 9-12
 Command AutoEnroll{cmd_fingerprint, fp_auto_enroll, 4};
 Command HeartBeat{cmd_maintenance, maintenance_heart_beat, 0};
 Command LedControl{cmd_system, sys_set_led, 5};
