@@ -128,7 +128,7 @@ U8Bit rtxCommandLow;
 
 /// Answer received from finger module: must be == zero
 S32Bit errorCode;
-
+```
 
 ## Credits
 
