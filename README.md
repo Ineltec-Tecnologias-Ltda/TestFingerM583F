@@ -11,11 +11,10 @@ training, attendance and other ide ntity fields;
 
 This software is based on documents received from the manufaturer [Guangzhou Gouku Technology Co., Ltd](https://gocool.en.alibaba.com/company_profile.html?spm=a2700.details.0.0.6c8b5b8emXWpxZ).
 
-Documents received and extensivily referenced on methods are: 
+Documents received and extensivily referenced on methods are:
 
 * [Fingerprint product specification](assets/M583F-Gouku.pdf)
 * [Fingerprit user's manual](assets/user's%20manual_Gouku.pdf)
-
 
 This library contais a complete working project example for VSCode+ PlatformIO extension+ Arduino + ESP32 processor module
 
