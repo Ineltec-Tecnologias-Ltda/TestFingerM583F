@@ -9,15 +9,15 @@ static const U8Bit rxHeader[8] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A
 /// Used for tx and rx data to/from Finger Module
 U8Bit dataBuffer[140];
 
-// Total received data lenght from finger module
+/// Total received data lenght from finger module
 U8Bit answerDataLength;
 
-// Answer command received from finger module
+/// Answer command received from finger module
 U8Bit rtxCommandHigh;
-// Answer command received from finger module
+/// Answer command received from finger module
 U8Bit rtxCommandLow;
 
-// Answer received from finger module: must be == zero
+/// Answer received from finger module: must be == zero
 S32Bit errorCode;
 
 /// Saves error code and command from received data

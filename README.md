@@ -1,12 +1,13 @@
 # Table of Contents
 
-* [About M583F Fingerprint Module](#about-m583f-fingerprint-module)
-* [About this Library and example](#about-this-library-and-example)
-* [Table of Contents](#table-of-contents)
-* [Hardware](#hardware)
-* [Installation](#installation)
-* [Libray Methods](#libray-methods)
-* [Credits](#credits)
+- [Table of Contents](#table-of-contents)
+  - [About M583F Fingerprint Module](#about-m583f-fingerprint-module)
+  - [About this Library and example](#about-this-library-and-example)
+  - [Hardware](#hardware)
+  - [Installation](#installation)
+  - [Libray Methods](#libray-methods)
+    - [Informations from sendCommandReceiveResponse() on public variables:](#informations-from-sendcommandreceiveresponse-on-public-variables)
+  - [Credits](#credits)
 
 ## About M583F Fingerprint Module
 
@@ -109,6 +110,25 @@ bool sendCommandReceiveResponse(Command command);
 /// if false "errorCode" and  "errorMessage" are set
 bool sendCommandReceiveResponse(Command command,size_t length);
 ```
+
+### Informations from sendCommandReceiveResponse() on public variables:
+
+```C++
+
+/// Used for tx and rx data to/from Finger Module
+U8Bit dataBuffer[140];
+
+/// Total received data lenght from finger module
+U8Bit answerDataLength;
+
+/// Answer command received from finger module
+U8Bit rtxCommandHigh;
+/// Answer command received from finger module
+U8Bit rtxCommandLow;
+
+/// Answer received from finger module: must be == zero
+S32Bit errorCode;
+
 
 ## Credits
 
