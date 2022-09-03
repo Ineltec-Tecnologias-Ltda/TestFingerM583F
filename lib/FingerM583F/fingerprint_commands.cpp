@@ -28,9 +28,9 @@ Command FingerIsTouch{cmd_fingerprint, fp_query_slot_status, 0};
 Command Enroll{cmd_fingerprint, fp_enroll_start, 1};
 Command EnrollResult{cmd_fingerprint, fp_enroll_result, 1};
 Command ModuleReset{cmd_system, sys_reset, 0};
-Command SendTemplateStart{cmd_fingerprint, fp_start_send_template, 4};
+Command SendTemplateStart{cmd_fingerprint, fp_start_send_template, 4};// @see users manual page 36
 Command SendTemplateData{cmd_fingerprint, fp_send_template_data, 0x89}; //0x89 is the maximum to be sent at each packet
-Command ReceiveTemplateStart{cmd_fingerprint, fp_start_get_template, 2};
+Command ReceiveTemplateStart{cmd_fingerprint, fp_start_get_template, 2}; // @see users manual page 38
 Command ReceiveTemplateData{cmd_fingerprint, fp_get_template_data, 2}; 
 
 /// @brief Sends Commands with no extra data, and receives response from module

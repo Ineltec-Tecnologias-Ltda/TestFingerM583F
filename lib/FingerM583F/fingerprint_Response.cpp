@@ -102,7 +102,7 @@ bool FP_protocol_get_frame_head()
 /// Receives complete response
 /// if response ok:
 ///   - Sets "errorCode" with received code ( codes list at "fingerprint_protocol.h")
-///   - Places all received data to "dataBuffer"
+///   - Places all received data to "dataBuffer" starting at index 0
 ///   - Sets "answerDataLength" with received data size
 bool receiveCompleteResponse()
 {

@@ -9,6 +9,9 @@ WiFiServer server(80);
 
 HardwareSerial Log(0);
 
+void RxTemplate();
+void TxTemplate();
+
 void setup()
 {
   Log.begin(57600, SERIAL_8N1, 3, 1);
@@ -77,13 +80,15 @@ void loop()
                   Log.printf("Match on slot: %d", slotID);
               }
             }
-            else if (headerHttp.indexOf("Upload") >= 0)
+            else if (headerHttp.indexOf("TxTemplate") >= 0)
             {
-              Log.println("Upload");
+              Log.println("TxTemplate");
+              TxTemplate();
             }
-            else if (headerHttp.indexOf("Download") >= 0)
+            else if (headerHttp.indexOf("RxTemplate") >= 0)
             {
-              Log.println("Download");
+              Log.println("RxTemplate");
+              RxTemplate();
             }
             else if (headerHttp.indexOf("Heartbeat") >= 0)
             {
@@ -136,8 +141,8 @@ void loop()
 
             client.println("<div class=\"btn-group\">");
             client.println(" <a href=\"Match\"><button class=\"button\">Match</button></a>");
-            client.println(" <a href=\"Upload\"><button class=\"button\">Upload</button></a>");
-            client.println("<a href=\"Download\"><button class=\"button\">Download</button></a>");
+            client.println(" <a href=\"TxTemplate\"><button class=\"button\">TxTemplate</button></a>");
+            client.println("<a href=\"RxTemplate\"><button class=\"button\">RxTemplate</button></a>");
             client.println("</div>");
 
             client.println("</body></html>");
@@ -165,4 +170,37 @@ void loop()
     client.stop();
     Log.println("Client disconnected.");
   }
+}
+
+void RxTemplate()
+{
+  // slot id
+  dataBuffer[6] = 0;
+  dataBuffer[7] = 2;
+
+  if (sendCommandReceiveResponse(ReceiveTemplateStart) && errorCode == FP_OK && answerDataLength > 0)
+  {
+    u16_t templateSize = ((u16_t)dataBuffer[0]) << 8;
+    templateSize += dataBuffer[1];
+    Log.printf("Template size: %d\r\n", templateSize);
+    delay(100);
+    // slot id
+    dataBuffer[6] = 0;
+    dataBuffer[7] = 2;
+    if (templateSize > 64 && sendCommandReceiveResponse(ReceiveTemplateData) && errorCode == FP_OK && answerDataLength > 0)
+    {
+      int i = 0;
+      while (answerDataLength-- > 0)
+      {
+        Log.printf("%02X ", dataBuffer[i++]);
+      }
+      Log.println();
+    }
+    else Log.println("??????????");
+      Log.printf("answerDataLength : %d\r\n", answerDataLength);
+  }
+}
+
+void TxTemplate()
+{
 }

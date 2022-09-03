@@ -54,7 +54,7 @@ This project is ready for running:
 * Make the hardware connections
 * Compile and upload software to module
 * Open Plaformio serial monitor
-* On configurations/Wi-Fi of your cell phone choose "FingerTests" network
+* On configurations/Wi-Fi of your cell phone choose "FingerTests" network, password = "123456789"
 * Open your cell phone brower on address 192.168.4.1 (may be another, check it on debug serial monitor screen)
 
 ## Libray Methods
