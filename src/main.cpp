@@ -117,6 +117,13 @@ void loop()
                                   5};   // Parameter 3
               ledControl(buffer);
             }
+            else if (headerHttp.indexOf("Delete") >= 0)
+            {
+              dataBuffer[6] = 1; // Flag for delete all
+              dataBuffer[7] = 0; // slot id
+              dataBuffer[8] = 1; // slot id
+              sendCommandReceiveResponse(DeleteTemplates);
+            }
             Log.printf("\r\nsum debug Tx: %d\r\n", sumTxDebug);
             Log.printf("Rx debug  State: %d\r\n", debugRxState);
 
@@ -144,6 +151,10 @@ void loop()
             client.println(" <a href=\"Match\"><button class=\"button\">Match</button></a>");
             client.println(" <a href=\"TxTemplate\"><button class=\"button\">TxTemplate</button></a>");
             client.println("<a href=\"RxTemplate\"><button class=\"button\">RxTemplate</button></a>");
+            client.println("</div>");
+
+            client.println("<div class=\"btn-group\">");
+            client.println(" <a href=\"DeleteAll\"><button class=\"button\">DeleteAll</button></a>");
             client.println("</div>");
 
             client.println("</body></html>");
@@ -175,7 +186,7 @@ void loop()
 
 void RxTemplate()
 {
-  //template slot id
+  // template slot id
   dataBuffer[6] = 0;
   dataBuffer[7] = 0;
 

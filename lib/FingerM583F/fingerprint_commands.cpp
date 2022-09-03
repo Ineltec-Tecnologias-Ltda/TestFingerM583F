@@ -28,10 +28,11 @@ Command FingerIsTouch{cmd_fingerprint, fp_query_slot_status, 0};
 Command Enroll{cmd_fingerprint, fp_enroll_start, 1};
 Command EnrollResult{cmd_fingerprint, fp_enroll_result, 1};
 Command ModuleReset{cmd_system, sys_reset, 0};
-Command SendTemplateStart{cmd_fingerprint, fp_start_send_template, 4};// @see users manual page 36
-Command SendTemplateData{cmd_fingerprint, fp_send_template_data, 0x89}; //0x89 is the maximum to be sent at each packet
+Command SendTemplateStart{cmd_fingerprint, fp_start_send_template, 4};   // @see users manual page 36
+Command SendTemplateData{cmd_fingerprint, fp_send_template_data, 0x89};  // 0x89 is the maximum to be sent at each packet
 Command ReceiveTemplateStart{cmd_fingerprint, fp_start_get_template, 2}; // @see users manual page 38
-Command ReceiveTemplateData{cmd_fingerprint, fp_get_template_data, 2}; 
+Command ReceiveTemplateData{cmd_fingerprint, fp_get_template_data, 2};
+Command DeleteTemplates{cmd_fingerprint, fp_delete_templates, 3}; // @see users manual page 33
 
 /// @brief Sends Commands with no extra data, and receives response from module
 // @see page Command set summary on pages 9 to 12 on users manual
@@ -39,32 +40,32 @@ Command ReceiveTemplateData{cmd_fingerprint, fp_get_template_data, 2};
 /// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
 /// if false errorCode and  errorMessage are set
 bool sendCommandReceiveResponse(Command command)
-{	
-	sendCommandHeader(command,command[2]);
-	writeBufferPlusCheckSum(command[2]);
+{
+    sendCommandHeader(command, command[2]);
+    writeBufferPlusCheckSum(command[2]);
     delay(100);
-	return receiveCompleteResponse();
+    return receiveCompleteResponse();
 }
 
 /// @brief Sends Commands with extra data, and receives response from module
 // @see page Command set summary on pages 9 to 12 on users manual
 /// @param command  Fix commands with variable extra data bytes after header(like 5.21 Fingerprint feature data download)
 /// @param length number of extra bytes to send after
-/// "dataBuffer" has to be filled with data( starting at index 6) to be sent 
-///  first 6 bytes are added by protocol methods with check password (4)+ command(2) 
+/// "dataBuffer" has to be filled with data( starting at index 6) to be sent
+///  first 6 bytes are added by protocol methods with check password (4)+ command(2)
 /// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
 /// if false "errorCode" and  "errorMessage" are set
-bool sendCommandReceiveResponse(Command command,size_t length)
-{	
-	sendCommandHeader(command,length);
-	writeBufferPlusCheckSum(length);
+bool sendCommandReceiveResponse(Command command, size_t length)
+{
+    sendCommandHeader(command, length);
+    writeBufferPlusCheckSum(length);
     delay(100);
-	return receiveCompleteResponse();
+    return receiveCompleteResponse();
 }
 
-/// @brief Tests if Finger Module is responsive 
+/// @brief Tests if Finger Module is responsive
 /// @see Users Manual page 49
-///This is an example of how to send a command without aditional data
+/// This is an example of how to send a command without aditional data
 /// @return  true if command was accepted from module
 /// if false "errorCode" and  "errorMessage" are set
 bool heartbeat()
@@ -72,19 +73,17 @@ bool heartbeat()
     return sendCommandReceiveResponse(HeartBeat);
 }
 
-
 /// @brief This is an example of how to send a command with aditional data
 /// @param params == 5 bytes as described on  Users Manual page 45
-/// "dataBuffer" (starting at index 6) is filled with "params" 
-///  first 6 bytes are added by protocol methods with check password (4)+ command(2) 
+/// "dataBuffer" (starting at index 6) is filled with "params"
+///  first 6 bytes are added by protocol methods with check password (4)+ command(2)
 /// @return  true if command was accepted from module
 /// if false "errorCode" and  "errorMessage" are set
 bool ledControl(uint8_t *params)
 {
-    memcpy(dataBuffer+6,params,LedControl[2]);
+    memcpy(dataBuffer + 6, params, LedControl[2]);
     return sendCommandReceiveResponse(LedControl);
 }
-
 
 /// @brief This is an example of how to send a command without aditional data
 /// @return  true if command was accepted from module
@@ -94,14 +93,13 @@ bool moduleReset()
     return sendCommandReceiveResponse(ModuleReset);
 }
 
-
 /// @brief see Users Manual page 48
 /// This is an example of how to send a command without aditional data and receive data from module
 /// @return  true if command was accepted from module,  "errorCode" has to be == 0 and "answerDataLength" > 0
 /// if false "errorCode" and  "errorMessage" are set
 bool readId()
 {
-    if (sendCommandReceiveResponse(ReadId) == true && errorCode == FP_OK  && answerDataLength > 0)
+    if (sendCommandReceiveResponse(ReadId) == true && errorCode == FP_OK && answerDataLength > 0)
     {
         debugRxState = -1000;
         /* gets Ascii value module id */
@@ -113,7 +111,7 @@ bool readId()
     return false;
 }
 
-bool fingerWaiting()
+bool fingerDetection()
 {
     LOG("Waiting for Finger...");
     int timeout = 600;
@@ -125,7 +123,7 @@ bool fingerWaiting()
             fingerInterrupt = false;
             delay(30);
             // @see Users Manual page 32
-            if ( sendCommandReceiveResponse(FingerIsTouch) == true && errorCode == FP_OK )
+            if (sendCommandReceiveResponse(FingerIsTouch) == true && errorCode == FP_OK)
                 if (dataBuffer[0] == 1)
                 { // Finger is placed on module
                     LOG("Finger detected!!");
@@ -147,16 +145,16 @@ bool fingerWaiting()
 /// if false errorCode and  errorMessage are set
 bool autoEnroll()
 {
-    if (!fingerWaiting())
+    if (!fingerDetection())
         return false;
 
-    sendCommandHeader(AutoEnroll,AutoEnroll[2]);
+    sendCommandHeader(AutoEnroll, AutoEnroll[2]);
 
     // enrollPara.enroll_mode = 0x01 will indicate that user must lift finger and press again during enrollment
-    dataBuffer[6] = 1;
+    dataBuffer[6] = 0;
 
     // enrollPara.times is the number of presses (can be set to 1~6 times)
-    dataBuffer[7] = 6;
+    dataBuffer[7] = 3;
 
     // enrollPara.slotID = 0xFFFF ,will be automatically assigned by the system
     dataBuffer[8] = 0xff;
@@ -171,19 +169,27 @@ bool autoEnroll()
         {
             if (errorCode == 0)
             {
-                LOGF("State: %d    Enroll Progress: %d %\r\n", dataBuffer[0], dataBuffer[3]);
-                if ((dataBuffer[3] == 100) && (dataBuffer[0] == 0xff))
+                if (answerDataLength == 4)
                 {
-                    slotID = dataBuffer[2];
-                    LOGF("Template slot: %d\r\n", slotID);
-                    errorMessage = EnrollOk;
-                    return true;
+                    LOGF("State: %d    Enroll Progress: %d %\r\n", dataBuffer[0], dataBuffer[3]);
+                    if ((dataBuffer[3] == 100) && (dataBuffer[0] == 0xff))
+                    {
+                        slotID = dataBuffer[2];
+                        LOGF("Template slot: %d\r\n", slotID);
+                        errorMessage = EnrollOk;
+                        return true;
+                    }
+                    else
+                    {
+                        // TODO implement callback!!!
+                        errorMessage = Enrolling;
+                        delay(100);
+                    }
                 }
                 else
                 {
-                    // TODO implement callback!!!
-                    errorMessage = Enrolling;
-                     delay(100);
+                    retry = 7;
+                    LOGF("State: %d %\r\n", dataBuffer[0]);
                 }
             }
             else if (errorCode = FP_DEVICE_TIMEOUT_ERROR)
@@ -220,7 +226,7 @@ bool autoEnroll()
 // @see Users Manual pages 23 and 24
 bool matchTemplate()
 {
-    if (!fingerWaiting())
+    if (!fingerDetection())
         return false;
 
     int retry = 10;

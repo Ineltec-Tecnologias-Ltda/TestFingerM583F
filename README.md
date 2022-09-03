@@ -71,7 +71,8 @@ There are many methods implementing module commands given as example that uses t
 * bool autoEnroll();
 * bool matchTemplate();
 * void TxTemplate();
-* void RxTemplate()
+* void RxTemplate();
+* bool fingerDetection();
 
 ```C++
 
