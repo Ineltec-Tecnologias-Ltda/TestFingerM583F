@@ -90,6 +90,7 @@ extern "C"
 
 
 /******************************************   errorCode   ***************************************/
+///@see users manual -  6.1 Error Information Definition Table   page 53
 #define COMP_CODE_OK (0x00)
 #define COMP_CODE_UNKNOWN_CMD (0x01)
 #define COMP_CODE_CMD_DATA_LEN_ERROR (0x02)
@@ -114,10 +115,11 @@ extern "C"
 #define COMP_CODE_FORCE_QUIT (0x15)
 #define COMP_CODE_NONE_UPDATE (0x16)
 #define COMP_CODE_INVALID_FINGERPRINT_ID (0x17)
-#define COMP_CODE_DATA_BUFFER_OVERFLOW (0x18)
+#define COMP_CODE_GAIN_ADJUSTMENT_FAILED (0x18)
+#define COMP_CODE_DATA_BUFFER_OVERFLOW (0x19)
 #define COMP_CODE_OTHER_ERROR (0xFF)
 
-    bool receiveCompleteResponse();
+
     static S32Bit FP_action_get_errorCode(U8Bit *buffer);
 
     extern U8Bit dataBuffer[];

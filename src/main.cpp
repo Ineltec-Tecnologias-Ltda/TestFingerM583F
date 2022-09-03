@@ -11,6 +11,7 @@ HardwareSerial Log(0);
 
 void RxTemplate();
 void TxTemplate();
+U8Bit frame = 70;
 
 void setup()
 {
@@ -174,30 +175,67 @@ void loop()
 
 void RxTemplate()
 {
-  // slot id
+  //template slot id
   dataBuffer[6] = 0;
-  dataBuffer[7] = 2;
+  dataBuffer[7] = 0;
 
   if (sendCommandReceiveResponse(ReceiveTemplateStart) && errorCode == FP_OK && answerDataLength > 0)
   {
-    u16_t templateSize = ((u16_t)dataBuffer[0]) << 8;
-    templateSize += dataBuffer[1];
+    u16_t templateSize = (((u16_t)dataBuffer[0]) << 8) + dataBuffer[1];
     Log.printf("Template size: %d\r\n", templateSize);
     delay(100);
-    // slot id
-    dataBuffer[6] = 0;
-    dataBuffer[7] = 2;
-    if (templateSize > 64 && sendCommandReceiveResponse(ReceiveTemplateData) && errorCode == FP_OK && answerDataLength > 0)
+
+    if (templateSize > 64)
     {
-      int i = 0;
-      while (answerDataLength-- > 0)
+      //   U8Bit frame = templateSize / 128;
+
+      sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
+      dataBuffer[6] = 0;
+      dataBuffer[7] = frame;
+      writeBufferPlusCheckSum(ReceiveTemplateData[2]);
+      int retry = 20;
+      bool first = true;
+      bool resp = false;
+      while (retry-- > 0 && templateSize > 0)
       {
-        Log.printf("%02X ", dataBuffer[i++]);
+        resp = receiveCompleteResponse();
+        if (resp && errorCode == FP_OK && answerDataLength > 0)
+        {
+          Log.printf(" answerDataLength : %d\r\n", answerDataLength);
+          templateSize -= answerDataLength;
+          int i = 0;
+          while (answerDataLength-- > 0)
+          {
+            if (first)
+              Log.printf("%02X ", dataBuffer[i++]);
+          }
+          first = false;
+          Log.println();
+          delay(10);
+
+          retry = 4;
+          sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
+          dataBuffer[6] = 0;
+          dataBuffer[7] = frame;
+          writeBufferPlusCheckSum(ReceiveTemplateData[2]);
+          continue;
+        }
+        else
+        {
+          Log.printf("frame: %d   resp:%s error:%04X  answerDataLength : %d\r\n", frame, resp ? "true" : "false", resp ? errorCode : 0, resp ? answerDataLength : 0);
+          if (resp)
+            --frame;
+          delay(200);
+        }
+
+        sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
+        dataBuffer[6] = 0;
+        dataBuffer[7] = frame;
+        writeBufferPlusCheckSum(ReceiveTemplateData[2]);
       }
-      Log.println();
     }
-    else Log.println("??????????");
-      Log.printf("answerDataLength : %d\r\n", answerDataLength);
+    else
+      Log.println("??????????");
   }
 }
 

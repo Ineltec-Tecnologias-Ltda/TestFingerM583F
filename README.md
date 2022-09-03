@@ -134,4 +134,6 @@ S32Bit errorCode;
 
 Written by Roberto O Fonseca[roberto@ineltec.com.br]
 
-Many lines of code came from "Elock_DemoCode" received from  [Guangzhou Gouku Technology Co., Ltd](http://www.zyjjhome.com/), and other free code examples for Arduino and ESP32.
+Many lines of code came from "Elock_DemoCode" received from  [Guangzhou Gouku Technology Co., Ltd](http://www.zyjjhome.com/), and free code examples for Arduino and ESP32 came from other sources.
+
+Guangzhou Gouku contact person: Mark[mark@zyjjhome.com]

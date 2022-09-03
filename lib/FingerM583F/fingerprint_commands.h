@@ -39,3 +39,5 @@ extern Command SendTemplateStart;
 extern Command SendTemplateData; // 0x89 is the maximum to be sent at each packet
 extern Command ReceiveTemplateStart;
 extern Command ReceiveTemplateData;
+
+extern bool receiveCompleteResponse();

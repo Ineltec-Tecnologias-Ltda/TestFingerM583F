@@ -42,6 +42,7 @@ bool sendCommandReceiveResponse(Command command)
 {	
 	sendCommandHeader(command,command[2]);
 	writeBufferPlusCheckSum(command[2]);
+    delay(100);
 	return receiveCompleteResponse();
 }
 
@@ -57,6 +58,7 @@ bool sendCommandReceiveResponse(Command command,size_t length)
 {	
 	sendCommandHeader(command,length);
 	writeBufferPlusCheckSum(length);
+    delay(100);
 	return receiveCompleteResponse();
 }
 
@@ -107,7 +109,7 @@ bool readId()
         LOGF("Module Id...: %s\r\n", dataBuffer);
         return true;
     }
-    LOGF("Module Id Error:  %04X\r\n", errorCode);
+    LOGF("Module Id Error:  0x%04X\r\n", errorCode);
     return false;
 }
 
@@ -193,7 +195,7 @@ bool autoEnroll()
             else
             {
                 errorMessage = TryAgain;
-                LOGF("Enroll Error:  %04X\r\n", errorCode);
+                LOGF("Enroll Error:  0x%04X\r\n", errorCode);
                 if (errorCode == COMP_CODE_NO_FINGER_DETECT)
                     delay(100);
                 else
@@ -203,7 +205,7 @@ bool autoEnroll()
         else
         {
             errorMessage = TryAgain;
-            LOGF("TryAgain?  Error:  %04X\r\n", errorCode);
+            LOGF("TryAgain?  Error:  0x%04X\r\n", errorCode);
             return false;
         }
     }
@@ -270,7 +272,7 @@ bool matchTemplate()
                 else
                 {
                     errorMessage = TryAgain;
-                    LOGF(" Error: %04X\r\n", errorCode);
+                    LOGF(" Error: 0x%04X\r\n", errorCode);
                     return false;
                 }
             }

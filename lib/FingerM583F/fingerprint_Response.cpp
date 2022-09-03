@@ -91,11 +91,12 @@ bool FP_protocol_get_frame_head()
         }
         else
         {
-            errorCode = FP_DEVICE_TIMEOUT_ERROR;
             delay(10);
             debugRxState += 100;
         }
     }
+    errorCode = FP_DEVICE_TIMEOUT_ERROR;
+    LOG("header timeout...");
     return false;
 }
 
@@ -128,6 +129,7 @@ bool receiveCompleteResponse()
         else
         {
             errorCode = FP_DEVICE_TIMEOUT_ERROR;
+            LOG("timeout...");
             return false;
         }
     }
@@ -136,7 +138,7 @@ bool receiveCompleteResponse()
         if ((U8Bit)((~sum) + 1) == 0)
         {
             FP_action_get_errorCode(dataBuffer);
-            LOGF(" Cmd response:%02X, no extras\r\n",rtxCommandLow);
+            LOGF(" Cmd response:0x%02X, no extras\r\n",rtxCommandLow);
             return true; // Valid response with no extra data bytes
         }
 
@@ -157,7 +159,7 @@ bool receiveCompleteResponse()
 
     // Has to receive all other extra data bytes
     U8Bit dataLength = answerDataLength;
-    while (dataLength-- > 0)
+    while (dataLength-- > 0 && pos < sizeof(dataBuffer))
     {
         debugRxState--;
         if (FP_device_read_one_byte(dataBuffer + pos) == FP_OK)
@@ -171,7 +173,7 @@ bool receiveCompleteResponse()
     if (((U8Bit)((~sum) + 1)) == 0)
     {
         debugRxState = -200;
-        LOGF(" Cmd response:%02X errorCode: %04X    #bytes=%d\r\n",rtxCommandLow, errorCode,answerDataLength);
+        LOGF(" Cmd response:0x%02X errorCode: 0x%04X    #bytes=%d\r\n",rtxCommandLow, errorCode,answerDataLength);
         return true;
     }
 
