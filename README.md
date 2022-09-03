@@ -28,13 +28,13 @@ Is uses a connected Browser to input commands:
 
 ## Table of Contents
 
-- [About M583F Fingerprint Module](#about-m583f-fingerprint-module)
-  - [About this Library and example](#about-this-library-and-example)
-  - [Table of Contents](#table-of-contents)
-  - [Hardware](#hardware)
-  - [Installation](#installation)
-  - [Libray Methods](#libray-methods)
-  - [Credits](#credits)
+* [About M583F Fingerprint Module](#about-m583f-fingerprint-module)
+* [About this Library and example](#about-this-library-and-example)
+* [Table of Contents](#table-of-contents)
+* [Hardware](#hardware)
+* [Installation](#installation)
+* [Libray Methods](#libray-methods)
+* [Credits](#credits)
 
 ## Hardware
 
