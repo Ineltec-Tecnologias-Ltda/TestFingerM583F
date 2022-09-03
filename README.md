@@ -1,6 +1,5 @@
 # Table of Contents
 
-- [Table of Contents](#table-of-contents)
   - [About M583F Fingerprint Module](#about-m583f-fingerprint-module)
   - [About this Library and example](#about-this-library-and-example)
   - [Hardware](#hardware)
