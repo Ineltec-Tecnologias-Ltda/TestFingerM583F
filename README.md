@@ -96,6 +96,8 @@ Command DeleteTemplates{cmd_fingerprint, fp_delete_templates, 3}; // @see users 
 /// @brief Sends Commands with no extra data, and receives response from module
 // @see page Command set summary on pages 9 to 12 on users manual
 /// @param command Only commands with fixed extra data bytes after header
+/// For commands with extra data bytes "dataBuffer" has to be filled with data( starting at index 6)
+///  first 6 bytes are added by protocol methods with check password (4)+ command(2) 
 /// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
 /// if false errorCode and  errorMessage are set
 bool sendCommandReceiveResponse(Command command);
@@ -105,7 +107,7 @@ bool sendCommandReceiveResponse(Command command);
 // @see page Command set summary on pages 9 to 12 on users manual
 /// @param command  Fix commands with variable extra data bytes after header(like 5.21 Fingerprint feature data download)
 /// @param length number of extra bytes to send after
-/// "dataBuffer" has to be filled with data( starting at index 6) to be sent 
+/// "dataBuffer" has to be filled with data( starting at index 6)
 ///  first 6 bytes are added by protocol methods with check password (4)+ command(2) 
 /// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
 /// if false "errorCode" and  "errorMessage" are set
