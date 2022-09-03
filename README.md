@@ -40,11 +40,11 @@ Is uses a connected Browser to input commands:
 
 On file platformio.ini is defined on what pins module M583F is connected to ESP32 module, change it according to your hardware circuit design:
 
-build_flags =
-    -D ENABLE_DEBUG_FINGER=1
-    -D FINGER_PORT=0
-    -D FINGER_VIN_GPIO=13
-    -D FINGER_INT_GPIO=5
+build_flags = <br>
+    -D ENABLE_DEBUG_FINGER=1 <br>
+    -D FINGER_PORT=0 <br>
+    -D FINGER_VIN_GPIO=13 <br>
+    -D FINGER_INT_GPIO=5 <br>
 
 ## Installation
 
