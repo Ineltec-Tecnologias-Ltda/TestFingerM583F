@@ -11,7 +11,7 @@ HardwareSerial Log(0);
 
 void RxTemplate();
 void TxTemplate();
-U8Bit frame = 70;
+U8Bit frame = 65;
 
 void setup()
 {
@@ -198,7 +198,7 @@ void RxTemplate()
 
     if (templateSize > 64)
     {
-      frame = 64;//templateSize / 128;
+      // frame = templateSize / 128;
 
       sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
       dataBuffer[6] = 0;
@@ -210,39 +210,45 @@ void RxTemplate()
       while (retry-- > 0 && templateSize > 0)
       {
         resp = receiveCompleteResponse();
-        if (resp && errorCode == FP_OK && answerDataLength > 0)
+        Log.printf("frame: %d   resp:%s error:%04X  answerDataLength : %d\r\n", frame, resp ? "true" : "false", resp ? errorCode : 0, resp ? answerDataLength : 0);
+         if (resp && errorCode == FP_OK && answerDataLength > 0)
         {
-          Log.printf(" answerDataLength : %d\r\n", answerDataLength);
-          templateSize -= answerDataLength;
-          int i = 0;
-          while (answerDataLength-- > 0)
+          if (rtxCommandLow == 0x54)
           {
-            if (first)
-              Log.printf("%02X ", dataBuffer[i++]);
-          }
-          first = false;
-          Log.println();
-          delay(10);
+            Log.printf(" answerDataLength : %d\r\n", answerDataLength);
+            templateSize -= answerDataLength;
+            int i = 0;
+            while (answerDataLength-- > 0)
+            {
+              if (first)
+                Log.printf("%02X ", dataBuffer[i++]);
+            }
+            first = false;
+            Log.println();
+            delay(10);
 
-          retry = 4;
-    //      sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
-          dataBuffer[6] = 0;
-          dataBuffer[7] = frame;
-    //      writeBufferPlusCheckSum(ReceiveTemplateData[2]);
+            retry = 4;
+            //      sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
+            dataBuffer[6] = 0;
+            dataBuffer[7] = frame;
+            //      writeBufferPlusCheckSum(ReceiveTemplateData[2]);
+          }
           continue;
         }
         else
         {
-          Log.printf("frame: %d   resp:%s error:%04X  answerDataLength : %d\r\n", frame, resp ? "true" : "false", resp ? errorCode : 0, resp ? answerDataLength : 0);
-          // if (resp)
-          //   --frame;
+           if (resp)
+          {
+            --frame;
+            break;
+          }
           delay(100);
         }
 
-   //    sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
+        //    sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
         dataBuffer[6] = 0;
         dataBuffer[7] = frame;
-   //     writeBufferPlusCheckSum(ReceiveTemplateData[2]);
+        //     writeBufferPlusCheckSum(ReceiveTemplateData[2]);
       }
     }
     else

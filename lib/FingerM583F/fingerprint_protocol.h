@@ -7,14 +7,14 @@ extern "C"
 #endif
 
 #ifdef ENABLE_DEBUG_FINGER
-#define LOG(X)          \
-    {                   \
+#define LOG(X)             \
+    {                      \
         Serial.println(X); \
     }
-#define LOGINIT(...)  Serial.begin(57600, SERIAL_8N1, 3, 1);
+#define LOGINIT(...) Serial.begin(57600, SERIAL_8N1, 3, 1);
 #define LOGF(...) Serial.printf(__VA_ARGS__);
 #else
-#define LOGINIT(...);
+#define LOGINIT(...) ;
 #define LOG(...) ;
 #define LOGF(...) ;
 #endif // DEBUG
@@ -88,7 +88,6 @@ extern "C"
         maintenance_set_com_passwd = 0x05
     } FP_mtnce_cmd_word;
 
-
 /******************************************   errorCode   ***************************************/
 ///@see users manual -  6.1 Error Information Definition Table   page 53
 #define COMP_CODE_OK (0x00)
@@ -119,7 +118,6 @@ extern "C"
 #define COMP_CODE_DATA_BUFFER_OVERFLOW (0x19)
 #define COMP_CODE_OTHER_ERROR (0xFF)
 
-
     static S32Bit FP_action_get_errorCode(U8Bit *buffer);
 
     extern U8Bit dataBuffer[];
@@ -130,7 +128,6 @@ extern "C"
     extern U8Bit txHeader[];
     extern bool fingerInterrupt;
  
-
 #ifdef __cplusplus
 }
 #endif

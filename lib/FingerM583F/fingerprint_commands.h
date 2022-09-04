@@ -13,6 +13,7 @@ extern const char *TryAgain;
 
 extern U8Bit dataBuffer[];
 extern U8Bit answerDataLength;
+extern U8Bit rtxCommandLow;
 
 bool heartbeat();
 bool readId();

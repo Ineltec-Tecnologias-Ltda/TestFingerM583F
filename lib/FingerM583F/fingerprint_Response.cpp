@@ -17,7 +17,7 @@ U8Bit rtxCommandHigh;
 /// Answer command received from finger module
 U8Bit rtxCommandLow;
 
-/// Answer received from finger module: must be == zero
+/// Error code received from finger module: must be == zero
 S32Bit errorCode;
 
 /// Saves error code and command from received data
