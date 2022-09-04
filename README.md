@@ -1,12 +1,13 @@
 # Table of Contents
 
-- [About M583F Fingerprint Module](#about-m583f-fingerprint-module)
-- [About this Library and example](#about-this-library-and-example)
-- [Hardware](#hardware)
-- [Installation](#installation)
-- [Libray Methods](#libray-methods)
-- [Informations from sendCommandReceiveResponse() on public variables](#informations-from-sendcommandreceiveresponse-on-public-variables)
-- [Credits](#credits)
+- [Table of Contents](#table-of-contents)
+  - [About M583F Fingerprint Module](#about-m583f-fingerprint-module)
+  - [About this Library and example](#about-this-library-and-example)
+  - [Hardware](#hardware)
+  - [Installation](#installation)
+  - [Libray Methods](#libray-methods)
+  - [Informations from sendCommandReceiveResponse() on public variables](#informations-from-sendcommandreceiveresponse-on-public-variables)
+  - [Credits](#credits)
 
 ## About M583F Fingerprint Module
 
@@ -93,7 +94,7 @@ Command ReceiveTemplateStart{cmd_fingerprint, fp_start_get_template, 2}; // @see
 Command ReceiveTemplateData{cmd_fingerprint, fp_get_template_data, 2}; 
 Command DeleteTemplates{cmd_fingerprint, fp_delete_templates, 3}; // @see users manual page 33
 
-/// @brief Sends Commands with no extra data, and receives response from module
+/// @brief Sends Commands with fixed extra data, and receives response from module
 // @see page Command set summary on pages 9 to 12 on users manual
 /// @param command Only commands with fixed extra data bytes after header
 /// For commands with extra data bytes "dataBuffer" has to be filled with data( starting at index 6)
@@ -104,7 +105,7 @@ Command DeleteTemplates{cmd_fingerprint, fp_delete_templates, 3}; // @see users 
 bool sendCommandReceiveResponse(Command command);
 
 
-/// @brief Sends Commands with extra data, and receives response from module
+/// @brief Sends Commands with variable extra data, and receives response from module
 // @see page Command set summary on pages 9 to 12 on users manual
 /// @param command  Fix commands with variable extra data bytes after header(like 5.21 Fingerprint feature data download)
 /// @param length number of extra bytes to send after
