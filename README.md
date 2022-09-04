@@ -1,12 +1,12 @@
 # Table of Contents
 
-  - [About M583F Fingerprint Module](#about-m583f-fingerprint-module)
-  - [About this Library and example](#about-this-library-and-example)
-  - [Hardware](#hardware)
-  - [Installation](#installation)
-  - [Libray Methods](#libray-methods)
-  - [Informations from sendCommandReceiveResponse() on public variables](#informations-from-sendcommandreceiveresponse-on-public-variables)
-  - [Credits](#credits)
+- [About M583F Fingerprint Module](#about-m583f-fingerprint-module)
+- [About this Library and example](#about-this-library-and-example)
+- [Hardware](#hardware)
+- [Installation](#installation)
+- [Libray Methods](#libray-methods)
+- [Informations from sendCommandReceiveResponse() on public variables](#informations-from-sendcommandreceiveresponse-on-public-variables)
+- [Credits](#credits)
 
 ## About M583F Fingerprint Module
 
@@ -99,6 +99,7 @@ Command DeleteTemplates{cmd_fingerprint, fp_delete_templates, 3}; // @see users 
 /// For commands with extra data bytes "dataBuffer" has to be filled with data( starting at index 6)
 ///  first 6 bytes are added by protocol methods with check password (4)+ command(2) 
 /// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
+///   Places all received data to "dataBuffer" starting at index 0
 /// if false errorCode and  errorMessage are set
 bool sendCommandReceiveResponse(Command command);
 
@@ -110,6 +111,7 @@ bool sendCommandReceiveResponse(Command command);
 /// "dataBuffer" has to be filled with data( starting at index 6)
 ///  first 6 bytes are added by protocol methods with check password (4)+ command(2) 
 /// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
+///   Places all received data to "dataBuffer" starting at index 0
 /// if false "errorCode" and  "errorMessage" are set
 bool sendCommandReceiveResponse(Command command,size_t length);
 ```

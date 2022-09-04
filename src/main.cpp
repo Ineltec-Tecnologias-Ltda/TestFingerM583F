@@ -198,7 +198,7 @@ void RxTemplate()
 
     if (templateSize > 64)
     {
-      // frame = templateSize / 128;
+       frame = templateSize / 128;
 
       sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
       dataBuffer[6] = 0;
@@ -228,27 +228,29 @@ void RxTemplate()
             delay(10);
 
             retry = 4;
-            //      sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
+                  sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
             dataBuffer[6] = 0;
-            dataBuffer[7] = frame;
-            //      writeBufferPlusCheckSum(ReceiveTemplateData[2]);
+            dataBuffer[7] = ++frame;
+                  writeBufferPlusCheckSum(ReceiveTemplateData[2]);
           }
           continue;
         }
         else
         {
-           if (resp)
+           delay(100);
+          if (resp)
           {
             --frame;
             break;
-          }
-          delay(100);
-        }
-
-        //    sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
+          } else{
+           sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
         dataBuffer[6] = 0;
         dataBuffer[7] = frame;
-        //     writeBufferPlusCheckSum(ReceiveTemplateData[2]);
+             writeBufferPlusCheckSum(ReceiveTemplateData[2]);
+
+          }
+        }
+
       }
     }
     else
