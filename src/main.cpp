@@ -184,6 +184,13 @@ void loop()
   }
 }
 
+/// @brief This method is not working as specified on users manual page 39
+/// ReceiveTemplateStart is ok and can receive the template size
+/// But ReceiveTemplateData not working 
+/// The problem on the value to send on databuffer
+/// If value == 0, module gives no response and enters on a buged state(leaves only after hardware reset)
+/// If value == 64, module gives erroCode == 0x19 ==  COMP_CODE_DATA_BUFFER_OVERFLOW
+///
 void RxTemplate()
 {
   // template slot id
@@ -202,7 +209,7 @@ void RxTemplate()
 
       sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
       dataBuffer[6] = 0;
-      dataBuffer[7] = frame;
+      dataBuffer[7] = --frame;
       writeBufferPlusCheckSum(ReceiveTemplateData[2]);
       int retry = 10;
       bool first = true;
