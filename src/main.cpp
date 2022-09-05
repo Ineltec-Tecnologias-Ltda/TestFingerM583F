@@ -234,8 +234,10 @@ void RxTemplate()
           }
         }
         else
-          delay(100);
-        Log.printf("frame: %d   resp:%s error:%04X  answerDataLength : %d\r\n", frame, resp ? "true" : "false", resp ? errorCode : 0, resp ? answerDataLength : 0);
+        {
+          Log.printf("frame: %d   resp:%s error:%04X  answerDataLength : %d\r\n", frame, resp ? "true" : "false", resp ? errorCode : 0, resp ? answerDataLength : 0);
+          delay(200);
+        }
       }
     }
     else
