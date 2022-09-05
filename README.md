@@ -107,7 +107,7 @@ bool sendCommandReceiveResponse(Command command);
 
 /// @brief Sends Commands with variable extra data, and receives response from module
 // @see page Command set summary on pages 9 to 12 on users manual
-/// @param command  Fix commands with variable extra data bytes after header(like 5.21 Fingerprint feature data download)
+/// @param command  Commands with variable extra data bytes after header(like 5.21 Fingerprint feature data download)
 /// @param length number of extra bytes to send after
 /// "dataBuffer" has to be filled with data( starting at index 6)
 ///  first 6 bytes are added by protocol methods with check password (4)+ command(2) 
