@@ -11,7 +11,6 @@ HardwareSerial Log(0);
 
 void RxTemplate();
 void TxTemplate();
-U8Bit frame = 65;
 
 void setup()
 {
@@ -186,7 +185,7 @@ void loop()
 
 /// @brief This method is not working as specified on users manual page 39
 /// ReceiveTemplateStart is ok and can receive the template size
-/// But ReceiveTemplateData not working 
+/// But ReceiveTemplateData not working
 /// The problem on the value to send on databuffer
 /// If value == 0, module gives no response and enters on a buged state(leaves only after hardware reset)
 /// If value == 64, module gives erroCode == 0x19 ==  COMP_CODE_DATA_BUFFER_OVERFLOW
@@ -205,20 +204,17 @@ void RxTemplate()
 
     if (templateSize > 64)
     {
-       frame = templateSize / 128;
+      U8Bit frame = 0;
+      U8Bit maxFrames = templateSize / 128;
 
-      sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
-      dataBuffer[6] = 0;
-      dataBuffer[7] = --frame;
-      writeBufferPlusCheckSum(ReceiveTemplateData[2]);
       int retry = 10;
       bool first = true;
       bool resp = false;
-      while (retry-- > 0 && templateSize > 0)
+      while (retry-- > 0 && frame < maxFrames)
       {
-        resp = receiveCompleteResponse();
-        Log.printf("frame: %d   resp:%s error:%04X  answerDataLength : %d\r\n", frame, resp ? "true" : "false", resp ? errorCode : 0, resp ? answerDataLength : 0);
-         if (resp && errorCode == FP_OK && answerDataLength > 0)
+        dataBuffer[6] = 0;
+        dataBuffer[7] = frame;
+        if ((resp = sendCommandReceiveResponse(ReceiveTemplateData)) && resp && errorCode == FP_OK && answerDataLength > 0)
         {
           if (rtxCommandLow == 0x54)
           {
@@ -233,31 +229,13 @@ void RxTemplate()
             first = false;
             Log.println();
             delay(10);
-
             retry = 4;
-                  sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
-            dataBuffer[6] = 0;
-            dataBuffer[7] = ++frame;
-                  writeBufferPlusCheckSum(ReceiveTemplateData[2]);
+            frame++;
           }
-          continue;
         }
         else
-        {
-           delay(100);
-          if (resp)
-          {
-            --frame;
-            break;
-          } else{
-           sendCommandHeader(ReceiveTemplateData, ReceiveTemplateData[2]);
-        dataBuffer[6] = 0;
-        dataBuffer[7] = frame;
-             writeBufferPlusCheckSum(ReceiveTemplateData[2]);
-
-          }
-        }
-
+          delay(100);
+        Log.printf("frame: %d   resp:%s error:%04X  answerDataLength : %d\r\n", frame, resp ? "true" : "false", resp ? errorCode : 0, resp ? answerDataLength : 0);
       }
     }
     else
