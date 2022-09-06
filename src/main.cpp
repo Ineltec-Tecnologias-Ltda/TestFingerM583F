@@ -3,18 +3,20 @@
 #include "fingerprint_commands.h"
 #include "fingerprint_device.h"
 #include <iostream>
+#include <WiFiClient.h>
+#include <WiFiAP.h>
 
 // Set web server port number to 80
 WiFiServer server(80);
 
-HardwareSerial Log(0);
+#define Log Serial
 
 void RxTemplate();
 void TxTemplate();
 
 void setup()
 {
-  Log.begin(57600, SERIAL_8N1, 3, 1);
+  Log.begin(9600);
   commFingerInit(57600);
 
   WiFi.softAP(ssid, password);
@@ -200,7 +202,7 @@ void RxTemplate()
   {
     u16_t templateSize = (((u16_t)dataBuffer[0]) << 8) + dataBuffer[1];
     Log.printf("Template size: %d\r\n", templateSize);
-    delay(300);
+    delay(500);
 
     if (templateSize > 64)
     {
@@ -210,11 +212,14 @@ void RxTemplate()
       int retry = 10;
       bool first = true;
       bool resp = false;
+
       while (retry-- > 0 && frame < maxFrames)
       {
         dataBuffer[6] = 0;
         dataBuffer[7] = frame;
-        if ((resp = sendCommandReceiveResponse(ReceiveTemplateData)) && resp && errorCode == FP_OK && answerDataLength > 0)
+
+        resp = sendCommandReceiveResponse(ReceiveTemplateData);
+        if (resp && errorCode == FP_OK && answerDataLength > 0)
         {
           if (rtxCommandLow == 0x54)
           {

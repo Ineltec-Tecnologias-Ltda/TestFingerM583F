@@ -39,13 +39,17 @@ Is uses a connected Browser to input commands:
 
 ## Hardware
 
-On file platformio.ini is defined on what pins module M583F is connected to ESP32 module, change it according to your hardware circuit design:
+On file platformio.ini is defined on what pins module M583F is connected to ESP32 module, change it according to your hardware circuit design. 
+The settings below are for ESP32-DevKit.
 
 build_flags = <br>
     -D ENABLE_DEBUG_FINGER=1 <br>
-    -D FINGER_PORT=0 <br>
-    -D FINGER_VIN_GPIO=13 <br>
-    -D FINGER_INT_GPIO=5 <br>
+    -D FINGER_UART_RX=4 <br>
+    -D FINGER_UART_TX=5 <br>
+    -D FINGER_INT_GPIO=6 <br>
+    -D FINGER_VIN_GPIO=7 <br>
+
+![ESP32-C3-DevKit connected to Finger Module](assets/ESP32C3_FingerModule)
 
 ## Installation
 

@@ -11,7 +11,7 @@ extern "C"
     {                      \
         Serial.println(X); \
     }
-#define LOGINIT(...) Serial.begin(57600, SERIAL_8N1, 3, 1);
+#define LOGINIT(...) Serial.begin(9600);
 #define LOGF(...) Serial.printf(__VA_ARGS__);
 #else
 #define LOGINIT(...) ;

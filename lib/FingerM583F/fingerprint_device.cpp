@@ -2,7 +2,7 @@
 #include "fingerprint_protocol.h"
 #include <Arduino.h>
 
-HardwareSerial fingerDevice(FINGER_PORT);
+HardwareSerial fingerDevice(1);
 
 extern U8Bit dataBuffer[];
 
@@ -29,12 +29,12 @@ void commFingerInit(unsigned long baud)
 	pinMode(FINGER_INT_GPIO, INPUT);
 
 	// Turns on MosFet to powerup Finger Module
-	digitalWrite(FINGER_VIN_GPIO, HIGH);
+	digitalWrite(FINGER_VIN_GPIO, HIGH); 
 
 	/// module sends interrupt signal when finger is touched
-	attachInterrupt(FINGER_INT_GPIO, fingerModuleInterrupt, RISING);
+	attachInterrupt(6, fingerModuleInterrupt, RISING);
 
-	fingerDevice.begin(baud, SERIAL_8N1, 3, 1);
+	fingerDevice.begin(baud, SERIAL_8N1, FINGER_UART_RX, FINGER_UART_TX);
 	delay(100);
 	LOGINIT();
 	delay(100);
