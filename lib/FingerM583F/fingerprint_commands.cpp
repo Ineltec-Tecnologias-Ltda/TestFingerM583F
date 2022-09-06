@@ -33,6 +33,7 @@ Command SendTemplateData{cmd_fingerprint, fp_send_template_data, 0x89};  // 0x89
 Command ReceiveTemplateStart{cmd_fingerprint, fp_start_get_template, 2}; // @see users manual page 38
 Command ReceiveTemplateData{cmd_fingerprint, fp_get_template_data, 2};
 Command DeleteTemplates{cmd_fingerprint, fp_delete_templates, 3}; // @see users manual page 33
+Command GetAllSlotStatus{cmd_fingerprint, fp_get_all_slots_status, 0};
 
 /// @brief Sends Commands with fixed extra data, and receives response from module
 // @see page Command set summary on pages 9 to 12 on users manual
@@ -94,6 +95,7 @@ bool ledControl(uint8_t *params)
 /// if false "errorCode" and  "errorMessage" are set
 bool moduleReset()
 {
+      commFingerInit(57600);
     return sendCommandReceiveResponse(ModuleReset);
 }
 

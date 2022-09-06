@@ -185,6 +185,7 @@ void loop()
   }
 }
 
+S8Bit frame = -16;
 /// @brief This method is not working as specified on users manual page 39
 /// ReceiveTemplateStart is ok and can receive the template size
 /// But ReceiveTemplateData not working
@@ -194,59 +195,64 @@ void loop()
 ///
 void RxTemplate()
 {
-  // template slot id
-  dataBuffer[6] = 0;
-  dataBuffer[7] = 0;
+  if (sendCommandReceiveResponse(GetAllSlotStatus) && errorCode == FP_OK && answerDataLength > 0)
 
-  if (sendCommandReceiveResponse(ReceiveTemplateStart) && errorCode == FP_OK && answerDataLength > 0)
   {
-    u16_t templateSize = (((u16_t)dataBuffer[0]) << 8) + dataBuffer[1];
-    Log.printf("Template size: %d\r\n", templateSize);
-    delay(500);
+    // template slot id
+    dataBuffer[6] = 0;
+    dataBuffer[7] = 0;
 
-    if (templateSize > 64)
+    if (sendCommandReceiveResponse(ReceiveTemplateStart) && errorCode == FP_OK && answerDataLength > 0)
     {
-      U8Bit frame = 0;
-      U8Bit maxFrames = templateSize / 128;
+      u16_t templateSize = (((u16_t)dataBuffer[0]) << 8) + dataBuffer[1];
+      Log.printf("Template size: %d\r\n", templateSize);
+      delay(500);
 
-      int retry = 10;
-      bool first = true;
-      bool resp = false;
-
-      while (retry-- > 0 && frame < maxFrames)
+      if (templateSize > 64)
       {
-        dataBuffer[6] = 0;
-        dataBuffer[7] = frame;
 
-        resp = sendCommandReceiveResponse(ReceiveTemplateData);
-        if (resp && errorCode == FP_OK && answerDataLength > 0)
+        U8Bit maxFrames = templateSize / 128;
+
+        int retry = 10;
+        bool first = true;
+        bool resp = false;
+        frame = 0;
+
+        while (retry-- > 0 && frame < maxFrames)
         {
-          if (rtxCommandLow == 0x54)
+          dataBuffer[6] = 0;
+          dataBuffer[7] = frame;
+
+          resp = sendCommandReceiveResponse(ReceiveTemplateData);
+          if (resp && errorCode == FP_OK && answerDataLength > 0)
           {
-            Log.printf(" answerDataLength : %d\r\n", answerDataLength);
-            templateSize -= answerDataLength;
-            int i = 0;
-            while (answerDataLength-- > 0)
+            if (rtxCommandLow == 0x54)
             {
-              if (first)
-                Log.printf("%02X ", dataBuffer[i++]);
+              Log.printf(" answerDataLength : %d\r\n", answerDataLength);
+              templateSize -= answerDataLength;
+              int i = 0;
+              while (answerDataLength-- > 0)
+              {
+                if (first)
+                  Log.printf("%02X ", dataBuffer[i++]);
+              }
+              first = false;
+              Log.println();
+              delay(10);
+              retry = 4;
+              frame++;
             }
-            first = false;
-            Log.println();
-            delay(10);
-            retry = 4;
-            frame++;
+          }
+          else
+          {
+            Log.printf("frame: %d   resp:%s error:%04X  answerDataLength : %d\r\n", frame, resp ? "true" : "false", resp ? errorCode : 0, resp ? answerDataLength : 0);
+            delay(200);
           }
         }
-        else
-        {
-          Log.printf("frame: %d   resp:%s error:%04X  answerDataLength : %d\r\n", frame, resp ? "true" : "false", resp ? errorCode : 0, resp ? answerDataLength : 0);
-          delay(200);
-        }
       }
+      else
+        Log.println("??????????");
     }
-    else
-      Log.println("??????????");
   }
 }
 

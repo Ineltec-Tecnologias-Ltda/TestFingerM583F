@@ -44,8 +44,8 @@ bool FP_protocol_get_frame_head()
     U8Bit header = 0;
     U8Bit headerPos = 0;
     sum = 0;
-    timeout = 10;
-    while (timeout-- > 0)
+    timeout = 50;
+    while (timeout > 0)
     {
         if (FP_device_read_one_byte(&header) == FP_OK)
         {
@@ -53,6 +53,7 @@ bool FP_protocol_get_frame_head()
             // To consider as a valid response
             if (debugRxState == 0)
                 debugRxState = 1;
+            timeout = 10;
             if (header == rxHeader[headerPos])
             {
 
@@ -63,7 +64,7 @@ bool FP_protocol_get_frame_head()
                 {
                     debugRxState = 30;
                     if ((errorCode = FP_device_read_one_byte(&header)) == FP_OK && header == 0) // Data lenght high is always zero
-                        if ((errorCode = FP_device_read_one_byte(&header)) == FP_OK && header >= 11 && header < 138)
+                        if ((errorCode = FP_device_read_one_byte(&header)) == FP_OK && header >= 11 && header < 142)
                         { // Checks if valid data length
                             debugRxState = 40;
                             answerDataLength = header;
@@ -91,6 +92,7 @@ bool FP_protocol_get_frame_head()
         }
         else
         {
+            timeout--;
             delay(10);
             debugRxState += 100;
         }
@@ -108,10 +110,10 @@ bool FP_protocol_get_frame_head()
 bool receiveCompleteResponse()
 {
     U8Bit command = 0;
-    U8Bit timeout = 10;
     U8Bit pos = 0;
     if (!FP_protocol_get_frame_head())
         return false;
+    LOG("Header ok");
     debugRxState = -1;
 
     // Must now receive at least Check password + Command + error code + Checksum
@@ -125,6 +127,7 @@ bool receiveCompleteResponse()
             debugRxState--;
             pos++;
             answerDataLength--;
+            timeout = 10;
         }
         else
         {
@@ -138,7 +141,7 @@ bool receiveCompleteResponse()
         if ((U8Bit)((~sum) + 1) == 0)
         {
             FP_action_get_errorCode(dataBuffer);
-            LOGF(" Cmd response:0x%02X, no extras\r\n",rtxCommandLow);
+            LOGF(" Cmd response:0x%02X, no extras\r\n", rtxCommandLow);
             return true; // Valid response with no extra data bytes
         }
 
@@ -173,12 +176,12 @@ bool receiveCompleteResponse()
     if (((U8Bit)((~sum) + 1)) == 0)
     {
         debugRxState = -200;
-        LOGF(" Cmd response:0x%02X errorCode: 0x%04X    #bytes=%d\r\n",rtxCommandLow, errorCode,answerDataLength);
+        LOGF(" Cmd response:0x%02X errorCode: 0x%04X    #bytes=%d\r\n", rtxCommandLow, errorCode, answerDataLength);
         return true;
     }
 
     errorCode = FP_PROTOCOL_DATA_CHECKSUM_ERROR;
-    LOGF(" CHECKSUM ERROR...#bytes=%d\r\n",answerDataLength);
+    LOGF(" CHECKSUM ERROR...#bytes=%d\r\n", answerDataLength);
 
     debugRxState = -256;
     return false;

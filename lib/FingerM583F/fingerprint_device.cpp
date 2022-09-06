@@ -55,8 +55,9 @@ S32Bit FP_device_read_one_byte(U8Bit *data)
 			sum += *data;
 			return FP_OK;
 		}
+		else timeout--;
 		delay(10);
-	} while (timeout-- > 0);
+	} while (timeout > 0);
 
 	return FP_DEVICE_TIMEOUT_ERROR;
 }

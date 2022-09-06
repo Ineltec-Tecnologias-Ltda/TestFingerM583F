@@ -41,5 +41,6 @@ extern Command SendTemplateData; // 0x89 is the maximum to be sent at each packe
 extern Command ReceiveTemplateStart;
 extern Command ReceiveTemplateData;
 extern Command DeleteTemplates;
+extern Command GetAllSlotStatus;
 
 extern bool receiveCompleteResponse();
