@@ -47,7 +47,7 @@ build_flags = <br>
     -D FINGER_UART_RX=4 <br>
     -D FINGER_UART_TX=5 <br>
     -D FINGER_INT_GPIO=6 <br>
-    -D FINGER_VIN_GPIO=7 <br>
+
 
 ![ESP32-C3-DevKit connected to Finger Module](assets/ESP32C3_FingerModule.png)
 
