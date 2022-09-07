@@ -20,14 +20,11 @@ training, attendance and other ide ntity fields;
 
 ## About this Library and example
 
+This library contains a complete working project example for VSCode+ PlatformIO extension+ Arduino + ESP32 processor module
+
 This software is based on documents received from the manufaturer [Guangzhou Gouku Technology Co., Ltd](https://gocool.en.alibaba.com/company_profile.html?spm=a2700.details.0.0.6c8b5b8emXWpxZ).
 
-Documents received and extensivily referenced on methods are:
-
-* [Fingerprint product specification](assets/M583F-Gouku.pdf)
-* [Fingerprit user's manual](assets/user's%20manual_Gouku.pdf)
-
-This library contais a complete working project example for VSCode+ PlatformIO extension+ Arduino + ESP32 processor module
+Document extensivily referenced on methods: [Fingerprint product specification](assets/M583F-Gouku.pdf)
 
 The ESP32 module acts as a Wi-Fi station access point :
 
@@ -48,6 +45,7 @@ build_flags = <br>
     -D FINGER_UART_TX=5 <br>
     -D FINGER_INT_GPIO=6 <br>
 
+Document reference to connect Finger module to ESP32: [Fingerprit user's manual](assets/user's%20manual_Gouku.pdf)
 
 ![ESP32-C3-DevKit connected to Finger Module](assets/ESP32C3_FingerModule.png)
 

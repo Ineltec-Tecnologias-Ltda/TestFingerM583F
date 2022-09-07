@@ -4,6 +4,7 @@
 #include "fingerprint_device.h"
 #include "fingerprint_commands.h"
 
+ 
 const char *ssid = "FingerTests";
 
 const char *password = "123456789";
@@ -124,6 +125,7 @@ bool fingerDetection()
     fingerInterrupt = false;
     while (timeout-- > 0)
     {
+      //  esp_task_wdt_reset();
         if (fingerInterrupt)
         {
             fingerInterrupt = false;
@@ -138,7 +140,7 @@ bool fingerDetection()
                 }
             delay(30);
         }
-        delay(10);
+        vTaskDelay(10);
     }
 
     LOG("No Finger detected!!");

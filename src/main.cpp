@@ -1,18 +1,32 @@
+/*
+ * This is an example of how to use the library FingerM583F
+ * using VSCode+ PlatformIO extension+ Arduino + ESP32 processor module
+ */
 #include <Arduino.h>
 #include <WiFi.h>
 #include "fingerprint_commands.h"
 #include "fingerprint_device.h"
 #include <iostream>
+#include <string>
 #include <WiFiClient.h>
 #include <WiFiAP.h>
+#include <stdlib.h>
 
 // Set web server port number to 80
 WiFiServer server(80);
 
 #define Log Serial
 
-void RxTemplate();
-void TxTemplate();
+void RxTemplate(int slotId);
+void TxTemplate(int slotId);
+String inboxText = "";
+String headerHttp = "";
+int pos = 0;
+long inboxNumber;
+
+/// @brief Buffer to upload/download template to/from module
+char templateRx[4096];
+U16Bit templateRxLen = 0;
 
 void setup()
 {
@@ -28,6 +42,30 @@ void setup()
   server.begin();
 }
 
+bool getInboxText(int maxSize)
+{
+  inboxText = headerHttp.substring(pos, maxSize - 1);
+  int pos1 = inboxText.indexOf("=") + 1;
+  int pos2 = inboxText.indexOf(" ");
+  if (pos2 > pos1)
+  {
+    inboxText = inboxText.substring(pos1, pos2);
+    Log.println(inboxText);
+    inboxNumber = inboxText.toInt();
+    Log.printf("Typed number= %d", inboxNumber);
+    return true;
+  }
+  else
+  {
+    inboxText = "";
+    Log.println("Please enter data for the command");
+  }
+
+  Log.printf(" %d    %d Typed text= %s", pos1, pos2);
+
+  return false;
+}
+
 void loop()
 {
   WiFiClient client = server.available(); // Listen for incoming clients
@@ -36,9 +74,10 @@ void loop()
   {                             // If a new client connects,
     Log.println("New Client."); // print a message out in the serial port
     String currentLine = "";    // make a String to hold incoming data from the client
-    String headerHttp = "";
+    headerHttp = "";
+
     int i = 0;
-    int pos = 0;
+
     while (client.connected())
     { // loop while the client's connected
       if (client.available())
@@ -66,11 +105,26 @@ void loop()
 
             if ((pos = headerHttp.indexOf("Enroll=")) >= 0)
             {
-              headerHttp = headerHttp.substring(pos, i - 1);
-              int pos2 = headerHttp.indexOf(" ");
-              Log.print("Typed text=");
-              Log.println(headerHttp.substring(7, pos2));
-              autoEnroll();
+              if (getInboxText(i) && inboxNumber > 0)
+                autoEnroll();
+              else
+                Log.println("Must entre registration number > 0 to relate to template");
+            }
+            else if ((pos = headerHttp.indexOf("TxTemplate=")) >= 0)
+            {
+              Log.println("TxTemplate");
+              if (getInboxText(i))
+                TxTemplate(inboxNumber);
+              else
+                Log.println("Must enter slot number");
+            }
+            else if ((pos = headerHttp.indexOf("RxTemplate=")) >= 0)
+            {
+              Log.println("RxTemplate");
+              if (getInboxText(i))
+                RxTemplate(inboxNumber);
+              else
+                Log.println("Must enter slot number");
             }
             else if (headerHttp.indexOf("Match") >= 0)
             {
@@ -82,16 +136,7 @@ void loop()
                   Log.printf("Match on slot: %d", slotID);
               }
             }
-            else if (headerHttp.indexOf("TxTemplate") >= 0)
-            {
-              Log.println("TxTemplate");
-              TxTemplate();
-            }
-            else if (headerHttp.indexOf("RxTemplate") >= 0)
-            {
-              Log.println("RxTemplate");
-              RxTemplate();
-            }
+
             else if (headerHttp.indexOf("Heartbeat") >= 0)
             {
               if (heartbeat())
@@ -142,6 +187,16 @@ void loop()
             client.println("<input type=\"submit\" value=\"Enroll\">");
             client.println("</form>");
 
+            client.println("<form action=\"/finger.php\">");
+            client.println("<input type=\"text\" id=\"TxTemplate\" name=\"TxTemplate\">");
+            client.println("<input type=\"submit\" value=\"TxTemplate\">");
+            client.println("</form>");
+
+            client.println("<form action=\"/finger.php\">");
+            client.println("<input type=\"text\" id=\"RxTemplate\" name=\"RxTemplate\">");
+            client.println("<input type=\"submit\" value=\"RxTemplate\">");
+            client.println("</form>");
+
             client.println("<div class=\"btn-group\">");
             client.println(" <a href=\"Heartbeat\"><button class=\"button\">Heartbeat</button></a>");
             client.println(" <a href=\"Leds\"><button class=\"button\">Leds</button></a>");
@@ -150,11 +205,6 @@ void loop()
 
             client.println("<div class=\"btn-group\">");
             client.println(" <a href=\"Match\"><button class=\"button\">Match</button></a>");
-            client.println(" <a href=\"TxTemplate\"><button class=\"button\">TxTemplate</button></a>");
-            client.println("<a href=\"RxTemplate\"><button class=\"button\">RxTemplate</button></a>");
-            client.println("</div>");
-
-            client.println("<div class=\"btn-group\">");
             client.println(" <a href=\"DeleteAll\"><button class=\"button\">DeleteAll</button></a>");
             client.println("</div>");
 
@@ -185,23 +235,23 @@ void loop()
   }
 }
 
-S8Bit frame = -16;
-/// @brief This method is not working as specified on users manual page 39
-/// ReceiveTemplateStart is ok and can receive the template size
-/// But ReceiveTemplateData not working
-/// The problem on the value to send on databuffer
-/// If value == 0, module gives no response and enters on a buged state(leaves only after hardware reset)
-/// If value == 64, module gives erroCode == 0x19 ==  COMP_CODE_DATA_BUFFER_OVERFLOW
+/// @brief This method Gets a template from Finger module sets "templateRxLen" and "templateRx"
 ///
-void RxTemplate()
+void RxTemplate(int slotId)
 {
   if (sendCommandReceiveResponse(GetAllSlotStatus) && errorCode == FP_OK && answerDataLength > 0)
-
   {
+    int i = 0;
+    U16Bit index = 0;
+    Log.println("Slot Map");
+    while (answerDataLength-- > 0)
+      Log.printf("%02X ", dataBuffer[i++]);
+    Log.println();
+
     // template slot id
     dataBuffer[6] = 0;
-    dataBuffer[7] = 0;
-
+    dataBuffer[7] = slotId;
+    U8Bit frame = 0;
     if (sendCommandReceiveResponse(ReceiveTemplateStart) && errorCode == FP_OK && answerDataLength > 0)
     {
       u16_t templateSize = (((u16_t)dataBuffer[0]) << 8) + dataBuffer[1];
@@ -228,13 +278,17 @@ void RxTemplate()
           {
             if (rtxCommandLow == 0x54)
             {
-              Log.printf(" answerDataLength : %d\r\n", answerDataLength);
+              if (first)
+              {
+                Log.printf("First template frame answerDataLength : %d\r\n", answerDataLength);
+              }
               templateSize -= answerDataLength;
-              int i = 0;
+              i = 0;
               while (answerDataLength-- > 0)
               {
                 if (first)
-                  Log.printf("%02X ", dataBuffer[i++]);
+                  Log.printf("%02X ", dataBuffer[i]);
+                templateRx[index++] = dataBuffer[i++];
               }
               first = false;
               Log.println();
@@ -249,6 +303,8 @@ void RxTemplate()
             delay(200);
           }
         }
+        if (frame == maxFrames) ///Now we have a template do send back to Finger module
+          templateRxLen = templateSize;
       }
       else
         Log.println("??????????");
@@ -256,6 +312,6 @@ void RxTemplate()
   }
 }
 
-void TxTemplate()
+void TxTemplate(int slotId)
 {
 }
