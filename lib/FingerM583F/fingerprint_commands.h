@@ -46,3 +46,4 @@ extern Command ReceiveTemplateStart;
 extern Command ReceiveTemplateData;
 extern Command DeleteTemplates;
 extern Command GetAllSlotStatus;
+extern Command GetSlotsWithData;

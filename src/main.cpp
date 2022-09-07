@@ -19,8 +19,10 @@ WiFiServer server(80);
 
 void RxTemplate(int slotId);
 void TxTemplate(int slotId);
+bool getSlotInfos();
 String inboxText = "";
 String headerHttp = "";
+char messageBuffer[50];
 int pos = 0;
 long inboxNumber;
 
@@ -52,7 +54,7 @@ bool getInboxText(int maxSize)
     inboxText = inboxText.substring(pos1, pos2);
     Log.println(inboxText);
     inboxNumber = inboxText.toInt();
-    Log.printf("Typed number= %d", inboxNumber);
+    Log.printf("Typed number= %d\r\n", inboxNumber);
     return true;
   }
   else
@@ -75,6 +77,7 @@ void loop()
     Log.println("New Client."); // print a message out in the serial port
     String currentLine = "";    // make a String to hold incoming data from the client
     headerHttp = "";
+    messageBuffer[0] = 0;
 
     int i = 0;
 
@@ -108,7 +111,7 @@ void loop()
               if (getInboxText(i) && inboxNumber > 0)
                 autoEnroll();
               else
-                Log.println("Must entre registration number > 0 to associate with slotId");
+                sprintf(messageBuffer, "Must entre registration number > 0 to associate with slotId");
             }
             else if ((pos = headerHttp.indexOf("TxTemplate=")) >= 0)
             {
@@ -116,7 +119,7 @@ void loop()
               if (getInboxText(i))
                 TxTemplate(inboxNumber);
               else
-                Log.println("Must enter slot number");
+                sprintf(messageBuffer, "Must enter slot number");
             }
             else if ((pos = headerHttp.indexOf("RxTemplate=")) >= 0)
             {
@@ -124,16 +127,16 @@ void loop()
               if (getInboxText(i))
                 RxTemplate(inboxNumber);
               else
-                Log.println("Must enter slot number");
+                sprintf(messageBuffer, "Must enter slot number");
             }
             else if (headerHttp.indexOf("Match") >= 0)
             {
-              if (matchTemplate())
+              if (getSlotInfos())
               {
-                if (slotID == 0xff)
-                  Log.println("No Match");
+                if (matchTemplate())               
+                   sprintf(messageBuffer, "Match on slot: %d", slotID);               
                 else
-                  Log.printf("Match on slot: %d", slotID);
+                  sprintf(messageBuffer, "%s", errorMessage);
               }
             }
 
@@ -142,17 +145,17 @@ void loop()
               if (heartbeat())
               {
                 moduleReset(); // This is only to test this command
-                Log.println("Finger Module ok");
+                sprintf(messageBuffer, "Finger Module ok");
               }
               else
-                Log.println("No module response!!");
+                sprintf(messageBuffer, "No module response!!");
             }
             else if (headerHttp.indexOf("Module") >= 0)
             {
               if (readId())
-                Log.printf("\r\nModule Id: %s\r\n", dataBuffer);
+                sprintf(messageBuffer, "Module Id: %s", dataBuffer);
               else
-                Log.println("\r\nFailed to get Module Id\r\r");
+                sprintf(messageBuffer, "Failed to get Module Id");
             }
             else if (headerHttp.indexOf("Leds") >= 0)
             {
@@ -168,8 +171,10 @@ void loop()
               dataBuffer[6] = 1; // Flag for delete all
               dataBuffer[7] = 0; // slot id
               dataBuffer[8] = 1; // slot id
-              sendCommandReceiveResponse(DeleteTemplates);
+              if (sendCommandReceiveResponse(DeleteTemplates))
+                sprintf(messageBuffer, "All templates deleted");
             }
+            Log.println(messageBuffer);
             Log.printf("\r\nsum debug Tx: %d\r\n", sumTxDebug);
             Log.printf("Rx debug  State: %d\r\n", debugRxState);
 
@@ -188,13 +193,13 @@ void loop()
             client.println("</form>");
 
             client.println("<form action=\"/finger.php\">");
-            client.println("<input type=\"text\" id=\"TxTemplate\" name=\"TxTemplate\">");
-            client.println("<input type=\"submit\" value=\"TxTemplate\">");
+            client.println("<input type=\"text\" id=\"RxTemplate\" name=\"RxTemplate\">");
+            client.println("<input type=\"submit\" value=\"RxTemplate\">");
             client.println("</form>");
 
             client.println("<form action=\"/finger.php\">");
-            client.println("<input type=\"text\" id=\"RxTemplate\" name=\"RxTemplate\">");
-            client.println("<input type=\"submit\" value=\"RxTemplate\">");
+            client.println("<input type=\"text\" id=\"TxTemplate\" name=\"TxTemplate\">");
+            client.println("<input type=\"submit\" value=\"TxTemplate\">");
             client.println("</form>");
 
             client.println("<div class=\"btn-group\">");
@@ -207,6 +212,7 @@ void loop()
             client.println(" <a href=\"Match\"><button class=\"button\">Match</button></a>");
             client.println(" <a href=\"DeleteAll\"><button class=\"button\">DeleteAll</button></a>");
             client.println("</div>");
+            client.printf("<p> %s .</p>", messageBuffer);
 
             client.println("</body></html>");
 
@@ -235,20 +241,42 @@ void loop()
   }
 }
 
+bool getSlotInfos()
+{
+  if (!sendCommandReceiveResponse(GetSlotsWithData) || errorCode != FP_OK)
+  {
+    sprintf(messageBuffer, "No Module response");
+    return false;
+  }
+
+  if (dataBuffer[1] == 0)
+  {
+    sprintf(messageBuffer, "No templates on Finger Module");
+    return false;
+  }
+  else
+  {
+    Log.printf("%d Templates on Module", dataBuffer[1]);
+    if (sendCommandReceiveResponse(GetAllSlotStatus) && errorCode == FP_OK && answerDataLength > 0)
+    {
+      int i = 0;
+      Log.println("Slot Map:");
+      while (answerDataLength-- > 0)
+        Log.printf("%02X ", dataBuffer[i++]);
+      Log.println();
+    }
+    return true;
+  }
+}
+
 /// @brief This method Gets a template from Finger module sets "templateRxLen" and "templateRx"
 ///   "templateRx" can send back to Finger module for TxTemplate() test
 ///
 void RxTemplate(int slotId)
 {
-  if (sendCommandReceiveResponse(GetAllSlotStatus) && errorCode == FP_OK && answerDataLength > 0)
+  if (getSlotInfos())
   {
     int i = 0;
-    U16Bit index = 0;
-    Log.println("Slot Map:");
-    while (answerDataLength-- > 0)
-      Log.printf("%02X ", dataBuffer[i++]);
-    Log.println();
-
     // template slot id
     dataBuffer[6] = 0;
     dataBuffer[7] = slotId;
@@ -256,10 +284,11 @@ void RxTemplate(int slotId)
     {
       u16_t templateSize = (((u16_t)dataBuffer[0]) << 8) + dataBuffer[1];
       U8Bit maxFrames = templateSize / 128;
-      Log.printf("Template size: %d   frames ro Rx: %d\r\n", templateSize, maxFrames);
+      Log.printf("Template size: %d   frames to Rx: %d\r\n", templateSize, maxFrames);
       delay(100);
       if (templateSize > 64)
       {
+        U16Bit index = 0;
         U8Bit frame = 0;
         int retry = 10;
         bool first = true;
@@ -278,7 +307,7 @@ void RxTemplate(int slotId)
             if (first) // Print to log only first frame
             {
               first = false;
-              Log.printf("First template frame answerDataLength : %d\r\n", answerDataLength);
+              Log.println("First template frame");
               i = 2; // template data after frame counter
               while (i < answerDataLength)
               {
@@ -304,10 +333,10 @@ void RxTemplate(int slotId)
             delay(200);
           }
         }
-        if (frame == maxFrames)
+        if (retry > 0)
         {
           templateRxLen = templateSize;
-          Log.println(" Now we have a template to send back to Finger module to test TxTemplate()");
+          sprintf(messageBuffer, " Now we have a template to send back to Finger module to test TxTemplate()");
         }
       }
     }
@@ -315,49 +344,51 @@ void RxTemplate(int slotId)
 }
 
 /// @brief To test send template data to some other slot
-/// @param slotId 
+/// @param slotId
 void TxTemplate(int slotId)
 {
-  if (templateRxLen < 128)
-    Log.println("No template in buffer to send");
-  else
+  // template slot id
+  dataBuffer[6] = 0;
+  dataBuffer[7] = slotId;
+
+  // Total template lenght to send
+  dataBuffer[8] = templateRxLen / 256;
+  dataBuffer[9] = templateRxLen % 256;
+  if (sendCommandReceiveResponse(SendTemplateStart) && errorCode == FP_OK)
   {
-    // template slot id
-    dataBuffer[6] = 0;
-    dataBuffer[7] = slotId;
+    U8Bit maxFrames = templateRxLen / 128;
+    U8Bit frame = 0;
+    U16Bit totalLen = templateRxLen;
+    U16Bit index = 0;
+    int retry = 4;
+    U8Bit len = 128;
 
-    //Total template lenght to send
-    dataBuffer[8] = templateRxLen / 256;
-    dataBuffer[9] = templateRxLen % 256;
-    if (sendCommandReceiveResponse(SendTemplateStart) && errorCode == FP_OK)
+    Log.printf("Template size: %d ,   Sending %d frames to slot %d\r\n", templateRxLen, maxFrames, slotId);
+    while (frame < maxFrames && retry-- > 0)
     {
-      U8Bit maxFrames = templateRxLen / 128;
-      U8Bit frame = 0;
-      U16Bit totalLen = templateRxLen;
-      U16Bit index = 0;
-      int retry = 4;
-      U8Bit len = 128;
-      Log.printf("Sending % frames to slot %d\r\n", maxFrames, frame);
-      while (frame < maxFrames && retry-- > 0)
-      {
-        len = 128;
-        if (totalLen < 128)
-          len = totalLen;
-        dataBuffer[6] = 0;
-        dataBuffer[7] = frame;
-        memcpy(dataBuffer + 8, templateRx + index, len);
+      // len = 128;
+      //  if (totalLen < 128)
+      //    len = totalLen;
+      dataBuffer[6] = 0;
+      dataBuffer[7] = frame;
+      memcpy(dataBuffer + 8, templateRx + index, 128);
 
-        if (sendCommandReceiveResponse(SendTemplateData, len + 4) && errorCode == FP_OK)
-        {
-          Log.printf("Sent frame %d   ", frame);
-          frame++;
-          index += 128;
-          totalLen -= 128;
-          retry = 5;
-        }
+      if (sendCommandReceiveResponse(SendTemplateData) && errorCode == FP_OK)
+      {
+        Log.printf("Sent frame %d   ", frame);
+        frame++;
+        index += 128;
+        totalLen -= 128;
+        retry = 5;
       }
-      if ( retry > 0)
-        Log.println("All frames sent!!");
+    }
+    if (retry > 0)
+    {
+      sprintf(messageBuffer, "All frames sent frames to slot %d", slotId);
+      Log.println(messageBuffer);
+      getSlotInfos();
     }
   }
+  else
+    sprintf(messageBuffer, "No Module response");
 }

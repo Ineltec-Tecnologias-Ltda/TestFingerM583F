@@ -113,7 +113,6 @@ bool receiveCompleteResponse()
     U8Bit pos = 0;
     if (!FP_protocol_get_frame_head())
         return false;
-    LOG("Header ok");
     debugRxState = -1;
 
     // Must now receive at least Check password + Command + error code + Checksum

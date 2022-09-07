@@ -4,7 +4,6 @@
 #include "fingerprint_device.h"
 #include "fingerprint_commands.h"
 
- 
 const char *ssid = "FingerTests";
 
 const char *password = "123456789";
@@ -16,12 +15,14 @@ const char *EnrollOk = "Enroll OK";
 const char *Enrolling = "Enrolling...";
 const char *TimeoutError = "Timeout Error...";
 const char *TryAgain = "Please Try Again";
+const char *NoFinger = "No Finger detected!!";
+const char *NoMatch = "No Match";
 
 /// Command codes and extra data size
 /// @see users manual Command set summary pages 9-12
 Command AutoEnroll{cmd_fingerprint, fp_auto_enroll, 4};
 Command HeartBeat{cmd_maintenance, maintenance_heart_beat, 0};
-Command LedControl{cmd_system, sys_set_led, 5};
+Command LedControl{cmd_system, sys_set_led, 5}; // @see users manual page 45
 Command ReadId{cmd_maintenance, maintenance_read_id, 0};
 Command MatchTemplate{cmd_fingerprint, fp_match_start, 0};
 Command MatchResult{cmd_fingerprint, fp_match_result, 0};
@@ -35,12 +36,13 @@ Command ReceiveTemplateStart{cmd_fingerprint, fp_start_get_template, 2}; // @see
 Command ReceiveTemplateData{cmd_fingerprint, fp_get_template_data, 2};
 Command DeleteTemplates{cmd_fingerprint, fp_delete_templates, 3}; // @see users manual page 33
 Command GetAllSlotStatus{cmd_fingerprint, fp_get_all_slots_status, 0};
+Command GetSlotsWithData{cmd_system, sys_get_nb_templates, 0}; // @see users manual page 41
 
 /// @brief Sends Commands with fixed extra data, and receives response from module
 // @see page Command set summary on pages 9 to 12 on users manual
 /// @param command Only commands with fixed extra data bytes after header
 /// For commands with extra data bytes "dataBuffer" has to be filled with data( starting at index 6)
-///  first 6 bytes are added by protocol methods with check password (4)+ command(2) 
+///  first 6 bytes are added by protocol methods with check password (4)+ command(2)
 /// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
 ///   Places all received data to "dataBuffer" starting at index 0
 /// if false errorCode and  errorMessage are set
@@ -96,8 +98,15 @@ bool ledControl(uint8_t *params)
 /// if false "errorCode" and  "errorMessage" are set
 bool moduleReset()
 {
-      commFingerInit(57600);
-    return sendCommandReceiveResponse(ModuleReset);
+    commFingerInit(57600);
+    if (sendCommandReceiveResponse(ModuleReset))
+    {
+        // Automatically illuminate the LED when the finger touches
+        uint8_t buffer[] = {2, 0, 0, 0};
+        ledControl(buffer);
+        return true;
+    }
+    return false;
 }
 
 /// @brief see Users Manual page 48
@@ -125,7 +134,7 @@ bool fingerDetection()
     fingerInterrupt = false;
     while (timeout-- > 0)
     {
-      //  esp_task_wdt_reset();
+        //  esp_task_wdt_reset();
         if (fingerInterrupt)
         {
             fingerInterrupt = false;
@@ -143,7 +152,8 @@ bool fingerDetection()
         vTaskDelay(10);
     }
 
-    LOG("No Finger detected!!");
+    errorMessage = NoFinger;
+    LOG(errorMessage);
     return false;
 }
 
@@ -155,6 +165,8 @@ bool autoEnroll()
 {
     if (!fingerDetection())
         return false;
+
+    errorMessage = TryAgain;
 
     sendCommandHeader(AutoEnroll, AutoEnroll[2]);
 
@@ -218,7 +230,6 @@ bool autoEnroll()
         }
         else
         {
-            errorMessage = TryAgain;
             LOGF("TryAgain?  Error:  0x%04X\r\n", errorCode);
             return false;
         }
@@ -234,6 +245,7 @@ bool autoEnroll()
 // @see Users Manual pages 23 and 24
 bool matchTemplate()
 {
+    errorMessage = TryAgain;
     if (!fingerDetection())
         return false;
 
@@ -275,17 +287,15 @@ bool matchTemplate()
                         return true;
                     }
                     else
-                    {
-                        slotID = 0xff;
-                        LOG(" No Match");
-                        return true;
+                    {                 
+                        errorMessage = NoMatch;
+                        return false;
                     }
                 }
                 else if (errorCode == COMP_CODE_CMD_NOT_FINISHED || errorCode == FP_DEVICE_TIMEOUT_ERROR)
                     delay(100);
                 else
                 {
-                    errorMessage = TryAgain;
                     LOGF(" Error: 0x%04X\r\n", errorCode);
                     return false;
                 }
