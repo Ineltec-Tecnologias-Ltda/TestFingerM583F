@@ -32,7 +32,7 @@ The ESP32 module acts as a Wi-Fi station access point :
 
 Is uses a connected Browser to input commands:
 
-![Command Screen](assets/browserCommandScreen.jpeg)
+![Command Screen](assets/browserCommandScreen.png)
 
 ## Hardware
 
