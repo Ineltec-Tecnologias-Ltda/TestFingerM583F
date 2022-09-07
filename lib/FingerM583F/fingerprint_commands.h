@@ -15,6 +15,10 @@ extern U8Bit dataBuffer[];
 extern U8Bit answerDataLength;
 extern U8Bit rtxCommandLow;
 
+extern bool sendCommandReceiveResponse(Command command);
+extern bool sendCommandReceiveResponse(Command command, U8Bit length);
+extern bool receiveCompleteResponse();
+
 bool heartbeat();
 bool readId();
 bool autoEnroll();
@@ -42,5 +46,3 @@ extern Command ReceiveTemplateStart;
 extern Command ReceiveTemplateData;
 extern Command DeleteTemplates;
 extern Command GetAllSlotStatus;
-
-extern bool receiveCompleteResponse();

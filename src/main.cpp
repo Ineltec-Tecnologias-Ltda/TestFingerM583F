@@ -108,7 +108,7 @@ void loop()
               if (getInboxText(i) && inboxNumber > 0)
                 autoEnroll();
               else
-                Log.println("Must entre registration number > 0 to relate to template");
+                Log.println("Must entre registration number > 0 to associate with slotId");
             }
             else if ((pos = headerHttp.indexOf("TxTemplate=")) >= 0)
             {
@@ -236,6 +236,7 @@ void loop()
 }
 
 /// @brief This method Gets a template from Finger module sets "templateRxLen" and "templateRx"
+///   "templateRx" can send back to Finger module for TxTemplate() test
 ///
 void RxTemplate(int slotId)
 {
@@ -243,7 +244,7 @@ void RxTemplate(int slotId)
   {
     int i = 0;
     U16Bit index = 0;
-    Log.println("Slot Map");
+    Log.println("Slot Map:");
     while (answerDataLength-- > 0)
       Log.printf("%02X ", dataBuffer[i++]);
     Log.println();
@@ -251,22 +252,19 @@ void RxTemplate(int slotId)
     // template slot id
     dataBuffer[6] = 0;
     dataBuffer[7] = slotId;
-    U8Bit frame = 0;
     if (sendCommandReceiveResponse(ReceiveTemplateStart) && errorCode == FP_OK && answerDataLength > 0)
     {
       u16_t templateSize = (((u16_t)dataBuffer[0]) << 8) + dataBuffer[1];
-      Log.printf("Template size: %d\r\n", templateSize);
-      delay(500);
-
+      U8Bit maxFrames = templateSize / 128;
+      Log.printf("Template size: %d   frames ro Rx: %d\r\n", templateSize, maxFrames);
+      delay(100);
       if (templateSize > 64)
       {
-
-        U8Bit maxFrames = templateSize / 128;
-
+        U8Bit frame = 0;
         int retry = 10;
         bool first = true;
         bool resp = false;
-        frame = 0;
+        templateRxLen = 0;
 
         while (retry-- > 0 && frame < maxFrames)
         {
@@ -274,28 +272,31 @@ void RxTemplate(int slotId)
           dataBuffer[7] = frame;
 
           resp = sendCommandReceiveResponse(ReceiveTemplateData);
-          if (resp && errorCode == FP_OK && answerDataLength > 0)
+          if (resp && errorCode == FP_OK && answerDataLength > 2 && rtxCommandLow == 0x54 &&
+              dataBuffer[0] == 0 && dataBuffer[1] == frame)
           {
-            if (rtxCommandLow == 0x54)
+            if (first) // Print to log only first frame
             {
-              if (first)
+              first = false;
+              Log.printf("First template frame answerDataLength : %d\r\n", answerDataLength);
+              i = 2; // template data after frame counter
+              while (i < answerDataLength)
               {
-                Log.printf("First template frame answerDataLength : %d\r\n", answerDataLength);
-              }
-              templateSize -= answerDataLength;
-              i = 0;
-              while (answerDataLength-- > 0)
-              {
-                if (first)
-                  Log.printf("%02X ", dataBuffer[i]);
+                Log.printf("%02X ", dataBuffer[i]);
                 templateRx[index++] = dataBuffer[i++];
               }
-              first = false;
-              Log.println();
-              delay(10);
-              retry = 4;
-              frame++;
             }
+            else
+            {
+              answerDataLength -= 2;
+              memcpy(templateRx + index, dataBuffer + 2, answerDataLength);
+              index += answerDataLength;
+              Log.printf("Received frame %d\r\n", frame);
+            }
+
+            delay(5);
+            retry = 4;
+            frame++;
           }
           else
           {
@@ -303,15 +304,60 @@ void RxTemplate(int slotId)
             delay(200);
           }
         }
-        if (frame == maxFrames) ///Now we have a template do send back to Finger module
+        if (frame == maxFrames)
+        {
           templateRxLen = templateSize;
+          Log.println(" Now we have a template to send back to Finger module to test TxTemplate()");
+        }
       }
-      else
-        Log.println("??????????");
     }
   }
 }
 
+/// @brief To test send template data to some other slot
+/// @param slotId 
 void TxTemplate(int slotId)
 {
+  if (templateRxLen < 128)
+    Log.println("No template in buffer to send");
+  else
+  {
+    // template slot id
+    dataBuffer[6] = 0;
+    dataBuffer[7] = slotId;
+
+    //Total template lenght to send
+    dataBuffer[8] = templateRxLen / 256;
+    dataBuffer[9] = templateRxLen % 256;
+    if (sendCommandReceiveResponse(SendTemplateStart) && errorCode == FP_OK)
+    {
+      U8Bit maxFrames = templateRxLen / 128;
+      U8Bit frame = 0;
+      U16Bit totalLen = templateRxLen;
+      U16Bit index = 0;
+      int retry = 4;
+      U8Bit len = 128;
+      Log.printf("Sending % frames to slot %d\r\n", maxFrames, frame);
+      while (frame < maxFrames && retry-- > 0)
+      {
+        len = 128;
+        if (totalLen < 128)
+          len = totalLen;
+        dataBuffer[6] = 0;
+        dataBuffer[7] = frame;
+        memcpy(dataBuffer + 8, templateRx + index, len);
+
+        if (sendCommandReceiveResponse(SendTemplateData, len + 4) && errorCode == FP_OK)
+        {
+          Log.printf("Sent frame %d   ", frame);
+          frame++;
+          index += 128;
+          totalLen -= 128;
+          retry = 5;
+        }
+      }
+      if ( retry > 0)
+        Log.println("All frames sent!!");
+    }
+  }
 }

@@ -61,7 +61,7 @@ bool sendCommandReceiveResponse(Command command)
 /// @return if true, sets "dataBuffer" and "answerDataLength" according to received data
 ///   Places all received data to "dataBuffer" starting at index 0
 /// if false "errorCode" and  "errorMessage" are set
-bool sendCommandReceiveResponse(Command command, size_t length)
+bool sendCommandReceiveResponse(Command command, U8Bit length)
 {
     sendCommandHeader(command, length);
     writeBufferPlusCheckSum(length);
