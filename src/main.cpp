@@ -286,7 +286,10 @@ void RxTemplate(int slotId)
     if (sendCommandReceiveResponse(ReceiveTemplateStart) && errorCode == FP_OK && answerDataLength > 0)
     {
       u16_t templateSize = (((u16_t)dataBuffer[0]) << 8) + dataBuffer[1];
-      U8Bit maxFrames = (templateSize / 128) - 1;
+      u16_t templateSizeSaved = templateSize;
+      U8Bit maxFrames = (templateSize / 128);
+      if (templateSize % 128 == 0)
+        --maxFrames;
       Log.printf("Template size: %d   frames to Rx: %d\r\n", templateSize, maxFrames);
       delay(100);
       if (templateSize > 64)
@@ -309,8 +312,8 @@ void RxTemplate(int slotId)
             if (frame == 0 || frame == maxFrames) // Print to log first  and  last frames
             {
               Log.println("First or last template frame");
-              i = 2; // template data after frame counter
-              while (i < answerDataLength)
+              i = 2; // template data starts after frame counter
+              while (i < answerDataLength && templateSize-- > 0)
               {
                 Log.printf("%02X ", dataBuffer[i]);
                 templateRx[index++] = dataBuffer[i++];
@@ -322,6 +325,7 @@ void RxTemplate(int slotId)
               answerDataLength -= 2;
               memcpy(templateRx + index, dataBuffer + 2, answerDataLength);
               index += answerDataLength;
+              templateSize -= 128;
               Log.printf("Received frame %d\r\n", frame);
             }
 
@@ -337,7 +341,7 @@ void RxTemplate(int slotId)
         }
         if (retry > 0)
         {
-          templateRxLen = templateSize;
+          templateRxLen = templateSizeSaved;
           sprintf(messageBuffer, "Now we have a template to send back to Finger module to test TxTemplate()");
         }
       }
@@ -358,35 +362,43 @@ void TxTemplate(int slotId)
   dataBuffer[9] = templateRxLen % 256;
   if (sendCommandReceiveResponse(SendTemplateStart) && errorCode == FP_OK)
   {
-    U8Bit maxFrames = templateRxLen / 128 - 1;
+    u16_t templateSizeSaved = templateRxLen;
+    U8Bit maxFrames = templateRxLen / 128;
+    if (templateRxLen % 128 == 0)
+      --maxFrames;
     U8Bit frame = 0;
+    U8Bit lenTx = 130;
     U16Bit totalLen = templateRxLen;
     U16Bit index = 0;
     int retry = 4;
-    U8Bit len = 128;
+
     int i = 0;
     Log.printf("Template size: %d ,   Sending %d frames to slot %d\r\n", templateRxLen, maxFrames, slotId);
     while (frame <= maxFrames && retry-- > 0)
     {
-      // len = 128;
-      //  if (totalLen < 128)
-      //    len = totalLen;
       dataBuffer[6] = 0;
       dataBuffer[7] = frame;
       memcpy(dataBuffer + 8, templateRx + index, 128);
 
-      if (sendCommandReceiveResponse(SendTemplateData) && errorCode == FP_OK)
+      if (templateSizeSaved < 128) //Last frame < 128 bytes
+        lenTx = templateSizeSaved+2;
+
+      if (sendCommandReceiveResponse(SendTemplateData, lenTx) && errorCode == FP_OK)
       {
         if (frame == 0 || frame == maxFrames) // Print to log first  and last frames
         {
           i = 0;
           Log.println("First or last template frame");
-          while (i++ < 128)
+          while (i++ < 128 && templateSizeSaved-- > 0)
             Log.printf("%02X ", templateRx[index++]);
           Log.println();
         }
         else
+        {
+          templateSizeSaved -= 128;
           index += 128;
+        }
+
         Log.printf("Sent frame %d   ", frame);
         frame++;
         totalLen -= 128;
