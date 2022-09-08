@@ -121,7 +121,7 @@ extern "C"
     static S32Bit FP_action_get_errorCode(U8Bit *buffer);
 
     extern U8Bit dataBuffer[];
-    extern U8Bit answerDataLength;
+    extern U16Bit answerDataLength;
     extern S32Bit errorCode;
     extern int sum;
     extern S16Bit timeout;

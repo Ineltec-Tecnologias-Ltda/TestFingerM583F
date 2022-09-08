@@ -10,7 +10,7 @@ static const U8Bit rxHeader[8] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A
 U8Bit dataBuffer[140];
 
 /// Total received data lenght from finger module
-U8Bit answerDataLength;
+U16Bit answerDataLength;
 
 /// Answer command received from finger module
 U8Bit rtxCommandHigh;

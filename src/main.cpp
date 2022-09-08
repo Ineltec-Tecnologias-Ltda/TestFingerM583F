@@ -22,9 +22,10 @@ void TxTemplate(int slotId);
 bool getSlotInfos();
 String inboxText = "";
 String headerHttp = "";
-char messageBuffer[50];
+char messageBuffer[100];
 int pos = 0;
-long inboxNumber;
+long inboxNumber = 0;
+const char *CmdSent = "Command Sent";
 
 /// @brief Buffer to upload/download template to/from module
 char templateRx[4096];
@@ -77,7 +78,7 @@ void loop()
     Log.println("New Client."); // print a message out in the serial port
     String currentLine = "";    // make a String to hold incoming data from the client
     headerHttp = "";
-    messageBuffer[0] = 0;
+    sprintf(messageBuffer, CmdSent);
 
     int i = 0;
 
@@ -116,7 +117,9 @@ void loop()
             else if ((pos = headerHttp.indexOf("TxTemplate=")) >= 0)
             {
               Log.println("TxTemplate");
-              if (getInboxText(i))
+              if (templateRxLen == 0)
+                sprintf(messageBuffer, "No template data to send: get one with RxTemplate");
+              else if (getInboxText(i))
                 TxTemplate(inboxNumber);
               else
                 sprintf(messageBuffer, "Must enter slot number");
@@ -133,8 +136,8 @@ void loop()
             {
               if (getSlotInfos())
               {
-                if (matchTemplate())               
-                   sprintf(messageBuffer, "Match on slot: %d", slotID);               
+                if (matchTemplate())
+                  sprintf(messageBuffer, "Match on slot: %d", slotID);
                 else
                   sprintf(messageBuffer, "%s", errorMessage);
               }
@@ -182,9 +185,9 @@ void loop()
             client.println("<!DOCTYPE html><html>");
 
             client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
-
-            client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
-            client.println(".button2 {background-color: #555555;}</style></head>");
+            client.println("text-decoration: none; font-size: 20px; margin: 2px; cursor: pointer;}");
+            client.println(".button2 {background-color: #555555;}</style>");
+            client.println("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"></head>");
             client.println("<body><h1 style=\"color:Tomato;\">Finger M583F Server</h1>");
 
             client.println("<form action=\"/finger.php\">");
@@ -212,7 +215,7 @@ void loop()
             client.println(" <a href=\"Match\"><button class=\"button\">Match</button></a>");
             client.println(" <a href=\"DeleteAll\"><button class=\"button\">DeleteAll</button></a>");
             client.println("</div>");
-            client.printf("<p> %s .</p>", messageBuffer);
+            client.printf("<p> %s </p>\r\n", messageBuffer);
 
             client.println("</body></html>");
 
@@ -336,7 +339,7 @@ void RxTemplate(int slotId)
         if (retry > 0)
         {
           templateRxLen = templateSize;
-          sprintf(messageBuffer, " Now we have a template to send back to Finger module to test TxTemplate()");
+          sprintf(messageBuffer, "Now we have a template to send back to Finger module to test TxTemplate()");
         }
       }
     }

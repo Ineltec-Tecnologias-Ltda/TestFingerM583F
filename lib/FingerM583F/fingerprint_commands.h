@@ -12,7 +12,7 @@ extern const char *TimeoutError;
 extern const char *TryAgain;
 
 extern U8Bit dataBuffer[];
-extern U8Bit answerDataLength;
+extern U16Bit answerDataLength;
 extern U8Bit rtxCommandLow;
 
 extern bool sendCommandReceiveResponse(Command command);

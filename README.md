@@ -127,7 +127,7 @@ bool sendCommandReceiveResponse(Command command,size_t length);
 U8Bit dataBuffer[140];
 
 /// Total received data lenght from finger module
-U8Bit answerDataLength;
+U16Bit answerDataLength;
 
 /// Answer command received from finger module
 U8Bit rtxCommandHigh;
