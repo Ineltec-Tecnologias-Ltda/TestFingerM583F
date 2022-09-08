@@ -286,7 +286,7 @@ void RxTemplate(int slotId)
     if (sendCommandReceiveResponse(ReceiveTemplateStart) && errorCode == FP_OK && answerDataLength > 0)
     {
       u16_t templateSize = (((u16_t)dataBuffer[0]) << 8) + dataBuffer[1];
-      U8Bit maxFrames = templateSize / 128;
+      U8Bit maxFrames = (templateSize / 128) - 1;
       Log.printf("Template size: %d   frames to Rx: %d\r\n", templateSize, maxFrames);
       delay(100);
       if (templateSize > 64)
@@ -294,11 +294,10 @@ void RxTemplate(int slotId)
         U16Bit index = 0;
         U8Bit frame = 0;
         int retry = 10;
-        bool first = true;
         bool resp = false;
         templateRxLen = 0;
 
-        while (retry-- > 0 && frame < maxFrames)
+        while (retry-- > 0 && frame <= maxFrames)
         {
           dataBuffer[6] = 0;
           dataBuffer[7] = frame;
@@ -307,16 +306,16 @@ void RxTemplate(int slotId)
           if (resp && errorCode == FP_OK && answerDataLength > 2 && rtxCommandLow == 0x54 &&
               dataBuffer[0] == 0 && dataBuffer[1] == frame)
           {
-            if (first) // Print to log only first frame
+            if (frame == 0 || frame == maxFrames) // Print to log first  and  last frames
             {
-              first = false;
-              Log.println("First template frame");
+              Log.println("First or last template frame");
               i = 2; // template data after frame counter
               while (i < answerDataLength)
               {
                 Log.printf("%02X ", dataBuffer[i]);
                 templateRx[index++] = dataBuffer[i++];
               }
+              Log.println();
             }
             else
             {
@@ -359,15 +358,15 @@ void TxTemplate(int slotId)
   dataBuffer[9] = templateRxLen % 256;
   if (sendCommandReceiveResponse(SendTemplateStart) && errorCode == FP_OK)
   {
-    U8Bit maxFrames = templateRxLen / 128;
+    U8Bit maxFrames = templateRxLen / 128 - 1;
     U8Bit frame = 0;
     U16Bit totalLen = templateRxLen;
     U16Bit index = 0;
     int retry = 4;
     U8Bit len = 128;
-
+    int i = 0;
     Log.printf("Template size: %d ,   Sending %d frames to slot %d\r\n", templateRxLen, maxFrames, slotId);
-    while (frame < maxFrames && retry-- > 0)
+    while (frame <= maxFrames && retry-- > 0)
     {
       // len = 128;
       //  if (totalLen < 128)
@@ -378,9 +377,18 @@ void TxTemplate(int slotId)
 
       if (sendCommandReceiveResponse(SendTemplateData) && errorCode == FP_OK)
       {
+        if (frame == 0 || frame == maxFrames) // Print to log first  and last frames
+        {
+          i = 0;
+          Log.println("First or last template frame");
+          while (i++ < 128)
+            Log.printf("%02X ", templateRx[index++]);
+          Log.println();
+        }
+        else
+          index += 128;
         Log.printf("Sent frame %d   ", frame);
         frame++;
-        index += 128;
         totalLen -= 128;
         retry = 5;
       }
