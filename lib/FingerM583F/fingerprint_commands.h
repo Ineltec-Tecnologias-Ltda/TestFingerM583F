@@ -25,6 +25,9 @@ bool autoEnroll();
 bool matchTemplate();
 bool ledControl(uint8_t *params);
 bool moduleReset();
+bool RxTemplate(int slotId,char *templateRx,U16Bit *templateRxLen,char *messageBuffer );
+bool TxTemplate(int slotId,char *templateRx,U16Bit *templateRxLen,char *messageBuffer );
+bool getSlotInfos(char *messageBuffer );
 
 extern S16Bit debugRxState;
 

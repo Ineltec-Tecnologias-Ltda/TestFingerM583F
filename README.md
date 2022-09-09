@@ -75,6 +75,7 @@ There are many methods implementing module commands given as example that uses t
 * void TxTemplate();
 * void RxTemplate();
 * bool fingerDetection();
+* bool getSlotInfos();
 
 ```C++
 

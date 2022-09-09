@@ -17,9 +17,6 @@ WiFiServer server(80);
 
 #define Log Serial
 
-void RxTemplate(int slotId);
-void TxTemplate(int slotId);
-bool getSlotInfos();
 String inboxText = "";
 String headerHttp = "";
 char messageBuffer[100];
@@ -119,8 +116,16 @@ void loop()
               Log.println("TxTemplate");
               if (templateRxLen == 0)
                 sprintf(messageBuffer, "No template data to send: get one with RxTemplate");
+
               else if (getInboxText(i))
-                TxTemplate(inboxNumber);
+              {
+                if (TxTemplate(inboxNumber, templateRx, &templateRxLen, messageBuffer))
+                {
+                  sprintf(messageBuffer, "All frames sent frames to slot %d", inboxNumber);
+                  Log.printf(messageBuffer);
+                  getSlotInfos(messageBuffer);
+                }
+              }
               else
                 sprintf(messageBuffer, "Must enter slot number");
             }
@@ -128,13 +133,17 @@ void loop()
             {
               Log.println("RxTemplate");
               if (getInboxText(i))
-                RxTemplate(inboxNumber);
+              {
+                if (getSlotInfos(messageBuffer))
+                  if (RxTemplate(inboxNumber, templateRx, &templateRxLen, messageBuffer))
+                    sprintf(messageBuffer, "Now we have a template to send back to Finger module to test TxTemplate()");
+              }
               else
                 sprintf(messageBuffer, "Must enter slot number");
             }
             else if (headerHttp.indexOf("Match") >= 0)
             {
-              if (getSlotInfos())
+              if (getSlotInfos(messageBuffer))
               {
                 if (matchTemplate())
                   sprintf(messageBuffer, "Match on slot: %d", slotID);
@@ -242,176 +251,4 @@ void loop()
     client.stop();
     Log.println("Client disconnected.");
   }
-}
-
-bool getSlotInfos()
-{
-  if (!sendCommandReceiveResponse(GetSlotsWithData) || errorCode != FP_OK)
-  {
-    sprintf(messageBuffer, "No Module response");
-    return false;
-  }
-
-  if (dataBuffer[1] == 0)
-  {
-    sprintf(messageBuffer, "No templates on Finger Module");
-    return false;
-  }
-  else
-  {
-    Log.printf("%d Templates on Module", dataBuffer[1]);
-    if (sendCommandReceiveResponse(GetAllSlotStatus) && errorCode == FP_OK && answerDataLength > 0)
-    {
-      int i = 0;
-      Log.println("Slot Map:");
-      while (answerDataLength-- > 0)
-        Log.printf("%02X ", dataBuffer[i++]);
-      Log.println();
-    }
-    return true;
-  }
-}
-
-/// @brief This method Gets a template from Finger module sets "templateRxLen" and "templateRx"
-///   "templateRx" can send back to Finger module for TxTemplate() test
-///
-void RxTemplate(int slotId)
-{
-  if (getSlotInfos())
-  {
-    int i = 0;
-    // template slot id
-    dataBuffer[6] = 0;
-    dataBuffer[7] = slotId;
-    if (sendCommandReceiveResponse(ReceiveTemplateStart) && errorCode == FP_OK && answerDataLength > 0)
-    {
-      u16_t templateSize = (((u16_t)dataBuffer[0]) << 8) + dataBuffer[1];
-      u16_t templateSizeSaved = templateSize;
-      U8Bit maxFrames = (templateSize / 128);
-      if (templateSize % 128 == 0)
-        --maxFrames;
-      Log.printf("Template size: %d   frames to Rx: %d\r\n", templateSize, maxFrames);
-      delay(100);
-      if (templateSize > 64)
-      {
-        U16Bit index = 0;
-        U8Bit frame = 0;
-        int retry = 10;
-        bool resp = false;
-        templateRxLen = 0;
-
-        while (retry-- > 0 && frame <= maxFrames)
-        {
-          dataBuffer[6] = 0;
-          dataBuffer[7] = frame;
-
-          resp = sendCommandReceiveResponse(ReceiveTemplateData);
-          if (resp && errorCode == FP_OK && answerDataLength > 2 && rtxCommandLow == 0x54 &&
-              dataBuffer[0] == 0 && dataBuffer[1] == frame)
-          {
-            if (frame == 0 || frame == maxFrames) // Print to log first  and  last frames
-            {
-              Log.println("First or last template frame");
-              i = 2; // template data starts after frame counter
-              while (i < answerDataLength && templateSize-- > 0)
-              {
-                Log.printf("%02X ", dataBuffer[i]);
-                templateRx[index++] = dataBuffer[i++];
-              }
-              Log.println();
-            }
-            else
-            {
-              answerDataLength -= 2;
-              memcpy(templateRx + index, dataBuffer + 2, answerDataLength);
-              index += answerDataLength;
-              templateSize -= 128;
-              Log.printf("Received frame %d\r\n", frame);
-            }
-
-            delay(5);
-            retry = 4;
-            frame++;
-          }
-          else
-          {
-            Log.printf("frame: %d   resp:%s error:%04X  answerDataLength : %d\r\n", frame, resp ? "true" : "false", resp ? errorCode : 0, resp ? answerDataLength : 0);
-            delay(200);
-          }
-        }
-        if (retry > 0)
-        {
-          templateRxLen = templateSizeSaved;
-          sprintf(messageBuffer, "Now we have a template to send back to Finger module to test TxTemplate()");
-        }
-      }
-    }
-  }
-}
-
-/// @brief To test send template data to some other slot
-/// @param slotId
-void TxTemplate(int slotId)
-{
-  // template slot id
-  dataBuffer[6] = 0;
-  dataBuffer[7] = slotId;
-
-  // Total template lenght to send
-  dataBuffer[8] = templateRxLen / 256;
-  dataBuffer[9] = templateRxLen % 256;
-  if (sendCommandReceiveResponse(SendTemplateStart) && errorCode == FP_OK)
-  {
-    u16_t templateSizeSaved = templateRxLen;
-    U8Bit maxFrames = templateRxLen / 128;
-    if (templateRxLen % 128 == 0)
-      --maxFrames;
-    U8Bit frame = 0;
-    U8Bit lenTx = 130;
-    U16Bit totalLen = templateRxLen;
-    U16Bit index = 0;
-    int retry = 4;
-
-    int i = 0;
-    Log.printf("Template size: %d ,   Sending %d frames to slot %d\r\n", templateRxLen, maxFrames, slotId);
-    while (frame <= maxFrames && retry-- > 0)
-    {
-      dataBuffer[6] = 0;
-      dataBuffer[7] = frame;
-      memcpy(dataBuffer + 8, templateRx + index, 128);
-
-      if (templateSizeSaved < 128) //Last frame < 128 bytes
-        lenTx = templateSizeSaved+2;
-
-      if (sendCommandReceiveResponse(SendTemplateData, lenTx) && errorCode == FP_OK)
-      {
-        if (frame == 0 || frame == maxFrames) // Print to log first  and last frames
-        {
-          i = 0;
-          Log.println("First or last template frame");
-          while (i++ < 128 && templateSizeSaved-- > 0)
-            Log.printf("%02X ", templateRx[index++]);
-          Log.println();
-        }
-        else
-        {
-          templateSizeSaved -= 128;
-          index += 128;
-        }
-
-        Log.printf("Sent frame %d   ", frame);
-        frame++;
-        totalLen -= 128;
-        retry = 5;
-      }
-    }
-    if (retry > 0)
-    {
-      sprintf(messageBuffer, "All frames sent frames to slot %d", slotId);
-      Log.println(messageBuffer);
-      getSlotInfos();
-    }
-  }
-  else
-    sprintf(messageBuffer, "No Module response");
 }
