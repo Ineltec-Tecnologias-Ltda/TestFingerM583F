@@ -161,10 +161,13 @@ bool fingerDetection()
 // @see Users Manual pages 22 and 23
 /// @return if true "slotID" is where the saved finger template was saved inside module
 /// if false errorCode and  errorMessage are set
-bool autoEnroll()
+bool autoEnroll(char *messageBuffer)
 {
   if (!fingerDetection())
+  {
+    sprintf(messageBuffer, "No Finger detected!!");
     return false;
+  }
 
   errorMessage = TryAgain;
 
@@ -201,7 +204,7 @@ bool autoEnroll()
           }
           else
           {
-            // TODO implement callback!!!
+            // TODO implement callback to show Enroll Progress!!!
             errorMessage = Enrolling;
             delay(100);
           }
@@ -221,33 +224,46 @@ bool autoEnroll()
       else
       {
         errorMessage = TryAgain;
-        LOGF("Enroll Error:  0x%04X\r\n", errorCode);
         if (errorCode == COMP_CODE_NO_FINGER_DETECT)
+        {
+          LOG("No Finger!!!")
+          if (retry == 0)
+          {
+            sprintf(messageBuffer, "No Finger detected!!");
+            return false;
+          }
           delay(100);
+        }
         else
+        {
+          sprintf(messageBuffer, "Enroll Error:  0x%04X\r\n", errorCode);
           return false;
+        }
       }
     }
     else
     {
-      LOGF("TryAgain?  Error:  0x%04X\r\n", errorCode);
+      sprintf(messageBuffer, "TryAgain?  Error:  0x%04X\r\n", errorCode);
       return false;
     }
   }
   LOG("Timeout Error");
   errorMessage = TimeoutError;
-
+  sprintf(messageBuffer, "No Module response");
   return false;
 }
 
 /// Returns true if match ok, and sets "slotId" with template position inside finger module
 // otherwise sets errorCode and errorMessage
 // @see Users Manual pages 23 and 24
-bool matchTemplate()
+bool matchTemplate(char *messageBuffer)
 {
   errorMessage = TryAgain;
   if (!fingerDetection())
+  {
+    sprintf(messageBuffer, "No Finger detected!!");
     return false;
+  }
 
   int retry = 10;
   bool start = true;
@@ -289,6 +305,7 @@ bool matchTemplate()
           else
           {
             errorMessage = NoMatch;
+            sprintf(messageBuffer, "No Match");
             return false;
           }
         }
@@ -296,12 +313,13 @@ bool matchTemplate()
           delay(100);
         else
         {
-          LOGF(" Error: 0x%04X\r\n", errorCode);
+          sprintf(messageBuffer, "Match Error:  0x%04X\r\n", errorCode);
           return false;
         }
       }
     }
   }
+  sprintf(messageBuffer, "No Module response");
   LOG("Timeout Error");
   errorMessage = TimeoutError;
   errorCode = FP_DEVICE_TIMEOUT_ERROR;

@@ -107,7 +107,7 @@ void loop()
             if ((pos = headerHttp.indexOf("Enroll=")) >= 0)
             {
               if (getInboxText(i) && inboxNumber > 0)
-                autoEnroll();
+                autoEnroll(messageBuffer);
               else
                 sprintf(messageBuffer, "Must entre registration number > 0 to associate with slotId");
             }
@@ -144,12 +144,8 @@ void loop()
             else if (headerHttp.indexOf("Match") >= 0)
             {
               if (getSlotInfos(messageBuffer))
-              {
-                if (matchTemplate())
-                  sprintf(messageBuffer, "Match on slot: %d", slotID);
-                else
-                  sprintf(messageBuffer, "%s", errorMessage);
-              }
+                if (matchTemplate(messageBuffer))
+                  sprintf(messageBuffer, "Match on slot: %d", slotID);              
             }
 
             else if (headerHttp.indexOf("Heartbeat") >= 0)

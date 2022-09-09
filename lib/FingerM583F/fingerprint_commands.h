@@ -21,8 +21,8 @@ extern bool receiveCompleteResponse();
 
 bool heartbeat();
 bool readId();
-bool autoEnroll();
-bool matchTemplate();
+bool autoEnroll( char *messageBuffer);
+bool matchTemplate( char *messageBuffer);
 bool ledControl(uint8_t *params);
 bool moduleReset();
 bool RxTemplate(int slotId,char *templateRx,U16Bit *templateRxLen,char *messageBuffer );
