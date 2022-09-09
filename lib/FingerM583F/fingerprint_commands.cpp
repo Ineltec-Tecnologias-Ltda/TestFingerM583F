@@ -382,12 +382,16 @@ bool RxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
         *templateRxLen = templateSizeSaved;
         return true;
       }
+      else
+        sprintf(messageBuffer, "Error getting template");
     }
+    else
+      sprintf(messageBuffer, "No Template on slot %d", slotId);
   }
   return false;
 }
 
-/// @brief This method Sends a template to Finger module 
+/// @brief This method Sends a template to Finger module
 /// @param slotId  Template slot to send data
 /// @param templateRx  buffer to get template data
 /// @param templateRxLen pointer to template data length
@@ -432,7 +436,10 @@ bool TxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
           i = 0;
           LOG("First or last template frame");
           while (i++ < 128 && templateSizeSaved-- > 0)
-            LOGF("%02X ", templateRx[index++]);
+          {
+            LOGF("%02X ", templateRx[index]);
+            index++;
+          }
           LOG(" ");
         }
         else
@@ -449,6 +456,8 @@ bool TxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
     }
     if (retry > 0)
       return true;
+    else
+      sprintf(messageBuffer, "Error sending template");
   }
   else
     sprintf(messageBuffer, "No Module response");
