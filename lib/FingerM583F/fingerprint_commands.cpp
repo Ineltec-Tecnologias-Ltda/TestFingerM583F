@@ -341,7 +341,7 @@ bool RxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
   dataBuffer[7] = slotId;
   if (sendCommandReceiveResponse(ReceiveTemplateStart) && errorCode == FP_OK && answerDataLength > 0)
   {
-    U16Bit templateSize = (((u16_t)dataBuffer[0]) << 8) + dataBuffer[1];
+    U16Bit templateSize = (((U16Bit)dataBuffer[0]) << 8) + dataBuffer[1];
     U16Bit templateSizeSaved = templateSize;
     U8Bit maxFrames = (templateSize / 128);
     if (templateSize % 128 == 0)
@@ -374,7 +374,7 @@ bool RxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
               LOGF("%02X ", dataBuffer[i]);
               templateRx[index++] = dataBuffer[i++];
             }
-            LOG(".. ok.. ");
+            LOG(" ");
           }
           else
           {

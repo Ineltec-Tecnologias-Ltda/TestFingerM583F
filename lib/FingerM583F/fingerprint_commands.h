@@ -2,7 +2,6 @@
 
 extern const char *errorMessage;
 extern U8Bit slotID;
-extern S32Bit errorCode;
 
 extern const char *ssid;
 extern const char *password;
@@ -10,9 +9,6 @@ extern const char *EnrollOk;
 extern const char *Enrolling;
 extern const char *TimeoutError;
 extern const char *TryAgain;
-
-extern U8Bit dataBuffer[];
-extern U16Bit answerDataLength;
 extern U8Bit rtxCommandLow;
 
 extern bool sendCommandReceiveResponse(Command command);

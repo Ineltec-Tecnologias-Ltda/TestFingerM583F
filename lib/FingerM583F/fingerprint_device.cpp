@@ -4,8 +4,6 @@
 
 HardwareSerial fingerDevice(1);
 
-extern U8Bit dataBuffer[];
-
 bool fingerInterrupt = false;
 
 U8Bit sumTxDebug = 0;

@@ -6,6 +6,7 @@
 #include <WiFi.h>
 #include "fingerprint_commands.h"
 #include "fingerprint_device.h"
+#include "fingerprint_protocol.h"
 #include <iostream>
 #include <string>
 #include <WiFiClient.h>
