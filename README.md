@@ -47,7 +47,7 @@ build_flags = <br>
 
 Document reference to connect Finger module to ESP32:  [Fingerprint product specification](assets/M583F-Gouku.pdf)
 
-![ESP32-C3-DevKit connected to Finger Module](assets/ESP32C3_FingerModule.png)
+![ESP32-C3-DevKit connected to Finger Module](assets/ESP32C3_FingerModule.jpeg)
 
 ## Installation
 

@@ -8,6 +8,7 @@ const char *ssid = "FingerTests";
 
 const char *password = "123456789";
 
+/// @brief Slot Id info no Finger Lib
 U8Bit slotID;
 const char *errorMessage;
 
@@ -482,8 +483,13 @@ bool TxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
   return false;
 }
 
+/// @brief Gets slots states on module
+/// @param messageBuffer
+/// @return  if true  dataBuffer[1] == number os templates on module
+///  if dataBuffer[1] < 100 , "slotID" is the first free slot if <> 0xff
 bool getSlotInfos(char *messageBuffer)
 {
+  slotID = 0xff;
   if (!sendCommandReceiveResponse(GetSlotsWithData) || errorCode != FP_OK)
   {
     sprintf(messageBuffer, "No Module response");
@@ -500,10 +506,30 @@ bool getSlotInfos(char *messageBuffer)
     LOGF("%d Templates on Module", dataBuffer[1]);
     if (sendCommandReceiveResponse(GetAllSlotStatus) && errorCode == FP_OK && answerDataLength > 0)
     {
-      int i = 0;
-      LOGF("Slot Map:");
+      int i = 2;
+      LOG("Slot Map:");
+      U8Bit pos = 0, j = 0, k = 0;
+      bool freeSlots = dataBuffer[1] < 100;
       while (answerDataLength-- > 0)
-        LOGF("%02X ", dataBuffer[i++]);
+      {
+        pos = dataBuffer[i++];
+        LOGF("%02X ", pos);
+        if (freeSlots)
+        {
+          for (k = 0; k < 8; k++)
+          {
+            if ((pos & 1) == 0)
+            {
+              slotID = j;
+              freeSlots = false;
+              LOGF("First Free Slot: %d", j);
+              break;
+            }
+            pos = pos >> 1;
+            j++;
+          }
+        }
+      }
       LOG("  ");
     }
     return true;
