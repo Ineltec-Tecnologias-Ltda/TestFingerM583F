@@ -222,6 +222,13 @@ bool autoEnroll(char *messageBuffer)
         delay(100);
         continue;
       }
+      else if (errorCode == COMP_CODE_SAME_ID)
+      {
+        LOG("Template already exists")
+        sprintf(messageBuffer, "Template already exists");
+        sendCommandReceiveResponse(ModuleReset);
+        return false;
+      }
       else
       {
         errorMessage = TryAgain;

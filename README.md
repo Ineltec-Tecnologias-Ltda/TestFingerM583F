@@ -24,15 +24,15 @@ This library contains a complete working project example for VSCode+ PlatformIO 
 
 This software is based on documents received from the manufaturer [Guangzhou Gouku Technology Co., Ltd](https://gocool.en.alibaba.com/company_profile.html?spm=a2700.details.0.0.6c8b5b8emXWpxZ).
 
-Document extensivily referenced on methods:[Fingerprit user's manual](assets/user's%20manual_Gouku.pdf)
+Document extensivily referenced on methods:[Fingerprit user's manual](docs/user's%20manual_Gouku.pdf)
 
 The ESP32 module acts as a Wi-Fi station access point :
 
-![access point](assets/ESP32-access-point.webp)
+![access point](docs/ESP32-access-point.webp)
 
 Is uses a connected Browser to input commands:
 
-![Command Screen](assets/browserCommandScreen.png)
+![Command Screen](docs/browserCommandScreen.png)
 
 ## Hardware
 
@@ -45,9 +45,9 @@ build_flags = <br>
     -D FINGER_UART_TX=5 <br>
     -D FINGER_INT_GPIO=6 <br>
 
-Document reference to connect Finger module to ESP32:  [Fingerprint product specification](assets/M583F-Gouku.pdf)
+Document reference to connect Finger module to ESP32:  [Fingerprint product specification](docs/M583F-Gouku.pdf)
 
-![ESP32-C3-DevKit connected to Finger Module](assets/ESP32C3_FingerModule.jpeg)
+![ESP32-C3-DevKit connected to Finger Module](docs/ESP32C3_FingerModule.jpeg)
 
 ## Installation
 
