@@ -216,7 +216,7 @@ bool autoEnroll(char *messageBuffer)
           LOGF("State: %d %\r\n", dataBuffer[0]);
         }
       }
-      else if (errorCode = FP_DEVICE_TIMEOUT_ERROR)
+      else if (errorCode == FP_DEVICE_TIMEOUT_ERROR)
       {
         LOG("Timeout...");
         delay(100);
