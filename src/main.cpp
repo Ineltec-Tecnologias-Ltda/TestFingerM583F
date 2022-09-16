@@ -28,6 +28,7 @@ const char *CmdSent = "Command Sent";
 /// @brief Buffer to upload/download template to/from module
 char templateRx[4096];
 U16Bit templateRxLen = 0;
+WiFiClient client;
 
 void setup()
 {
@@ -69,8 +70,6 @@ bool getInboxText(int maxSize)
 
 void loop()
 {
-  WiFiClient client = server.available(); // Listen for incoming clients
-
   if (client)
   {                             // If a new client connects,
     Log.println("New Client."); // print a message out in the serial port
@@ -107,8 +106,20 @@ void loop()
 
             if ((pos = headerHttp.indexOf("Enroll=")) >= 0)
             {
-              if (getInboxText(i) && inboxNumber > 0)
-                autoEnroll(messageBuffer);
+              if (getInboxText(i) && inboxNumber > 0){
+                if(autoEnroll(messageBuffer))
+                  sprintf(messageBuffer, "Template enrolled on slot: %d", slotID);                                  
+                else{
+                  /* Necessário para retirar o módulo de um communication freeze 
+                   * apos erro de enroll de finger existente!
+                   * Manter sequencia exata!
+                   */
+                  delay(200);
+                  sendCommandReceiveResponse(EnrollCancel);
+                  delay(100);      
+                  moduleReset();                  
+                }               
+              }
               else
                 sprintf(messageBuffer, "Must entre registration number > 0 to associate with slotId");
             }
@@ -145,8 +156,12 @@ void loop()
             else if (headerHttp.indexOf("Match") >= 0)
             {
               if (getSlotInfos(messageBuffer))
-                if (matchTemplate(messageBuffer))
-                  sprintf(messageBuffer, "Match on slot: %d", slotID);              
+                if (matchTemplate(messageBuffer)){
+                  sprintf(messageBuffer, "Match on slot: %d", slotID);    
+                  // Flashing red Green light
+                  uint8_t buffer[] = {4, 1, 30, 10, 1};
+                  ledControl(buffer);
+                }          
             }
 
             else if (headerHttp.indexOf("Heartbeat") >= 0)
@@ -248,4 +263,6 @@ void loop()
     client.stop();
     Log.println("Client disconnected.");
   }
+  else 
+    client = server.available(); // Listen for incoming clients
 }

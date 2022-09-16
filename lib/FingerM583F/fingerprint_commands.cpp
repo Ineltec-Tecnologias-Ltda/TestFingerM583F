@@ -29,7 +29,8 @@ Command MatchTemplate{cmd_fingerprint, fp_match_start, 0};
 Command MatchResult{cmd_fingerprint, fp_match_result, 0};
 Command FingerIsTouch{cmd_fingerprint, fp_query_slot_status, 0};
 Command Enroll{cmd_fingerprint, fp_enroll_start, 1};
-Command EnrollResult{cmd_fingerprint, fp_enroll_result, 1};
+Command EnrollResult{cmd_fingerprint, fp_enroll_result, 0};
+Command EnrollCancel{cmd_fingerprint, fp_enroll_cancel, 0};
 Command ModuleReset{cmd_system, sys_reset, 0};
 Command SendTemplateStart{cmd_fingerprint, fp_start_send_template, 4};   // @see users manual page 36
 Command SendTemplateData{cmd_fingerprint, fp_send_template_data, 0x89};  // 0x89 is the maximum to be sent at each packet
@@ -102,8 +103,8 @@ bool moduleReset()
   commFingerInit(57600);
   if (sendCommandReceiveResponse(ModuleReset))
   {
-    // Automatically illuminate the LED when the finger touches
-    uint8_t buffer[] = {2, 0, 0, 0};
+    // Flashing red LED light
+    uint8_t buffer[] = {4, 2, 30, 10, 1};
     ledControl(buffer);
     return true;
   }
@@ -133,6 +134,9 @@ bool fingerDetection()
   LOG("Waiting for Finger...");
   int timeout = 600;
   fingerInterrupt = false;
+  // Lite LED yellow light
+  uint8_t buffer[] = {3, 4, 20, 20, 5};
+  ledControl(buffer);
   while (timeout-- > 0)
   {
     //  esp_task_wdt_reset();
@@ -145,6 +149,9 @@ bool fingerDetection()
         if (dataBuffer[0] == 1)
         { // Finger is placed on module
           LOG("Finger detected!!");
+          // Turn LED off
+          uint8_t buffer[] = {0, 0, 0, 0, 0};
+          ledControl(buffer);
           delay(30);
           return true;
         }
@@ -218,15 +225,14 @@ bool autoEnroll(char *messageBuffer)
       }
       else if (errorCode == FP_DEVICE_TIMEOUT_ERROR)
       {
-        LOG("Timeout...");
+        LOG("Response Timeout...");
         delay(100);
         continue;
       }
       else if (errorCode == COMP_CODE_SAME_ID)
       {
         LOG("Template already exists")
-        sprintf(messageBuffer, "Template already exists");
-        sendCommandReceiveResponse(ModuleReset);
+        sprintf(messageBuffer, "Template already exists");        
         return false;
       }
       else
@@ -291,7 +297,7 @@ bool matchTemplate(char *messageBuffer)
       else
         errorCode = 0;
 
-      delay(200);
+      delay(300);
     }
     else
     {
@@ -318,7 +324,7 @@ bool matchTemplate(char *messageBuffer)
           }
         }
         else if (errorCode == COMP_CODE_CMD_NOT_FINISHED || errorCode == FP_DEVICE_TIMEOUT_ERROR)
-          delay(100);
+          delay(200);
         else
         {
           sprintf(messageBuffer, "Match Error:  0x%04X\r\n", errorCode);

@@ -38,6 +38,7 @@ extern Command MatchResult;
 extern Command FingerIsTouch;
 extern Command Enroll;
 extern Command EnrollResult;
+extern Command EnrollCancel;
 extern Command ModuleReset;
 extern Command SendTemplateStart;
 extern Command SendTemplateData; // 0x89 is the maximum to be sent at each packet

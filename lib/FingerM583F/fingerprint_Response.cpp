@@ -98,7 +98,7 @@ bool FP_protocol_get_frame_head()
         }
     }
     errorCode = FP_DEVICE_TIMEOUT_ERROR;
-    LOG("header timeout...");
+    LOG("Header Timeout...");
     return false;
 }
 
@@ -131,7 +131,7 @@ bool receiveCompleteResponse()
         else
         {
             errorCode = FP_DEVICE_TIMEOUT_ERROR;
-            LOG("timeout...");
+            LOG("Data receive timeout...");
             return false;
         }
     }

@@ -78,10 +78,12 @@ void sendCommandHeader(Command command, const unsigned char length)
 		x = *data++;
 		sum += x;
 		fingerDevice.write(x);
+		LOGF("%02X",x);
 	};
 	sum = (U8Bit)((~sum) + 1);
 	sumTxDebug = (U8Bit)sum;
 	fingerDevice.write((U8Bit)sum);
+	LOGF("%02X",(U8Bit)sum);
 	memset(dataBuffer, 0, 4); // Sets Check password to zeroes
 
 	// Command data
@@ -103,8 +105,10 @@ void writeBufferPlusCheckSum(unsigned char length)
 		x = *data++;
 		sum += x;
 		fingerDevice.write(x);
+		LOGF("%02X",x);
 	};
 	sum = (U8Bit)((~sum) + 1);
 	sumTxDebug = (U8Bit)sum;
 	fingerDevice.write((U8Bit)sum);
+	LOGF("%02X\n",(U8Bit)sum);
 }
