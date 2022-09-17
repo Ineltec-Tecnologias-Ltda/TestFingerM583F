@@ -124,7 +124,7 @@ extern "C"
     extern U16Bit answerDataLength;
     extern S32Bit errorCode;
     extern int sum;
-    extern S16Bit timeout;
+    extern S16Bit timeoutFinger;
     extern U8Bit txHeader[];
     extern bool fingerInterrupt;
  

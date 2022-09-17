@@ -28,14 +28,14 @@ const char *CmdSent = "Command Sent";
 /// @brief Buffer to upload/download template to/from module
 char templateRx[4096];
 U16Bit templateRxLen = 0;
-WiFiClient client;
 
 void setup()
 {
+  const char *ssid = "FingerTests";
   Log.begin(9600);
   commFingerInit(57600);
 
-  WiFi.softAP(ssid, password);
+  WiFi.softAP(ssid, NULL);
 
   IPAddress IP = WiFi.softAPIP();
   Log.print("\r\nAP IP address: ");
@@ -68,8 +68,10 @@ bool getInboxText(int maxSize)
   return false;
 }
 
+WiFiClient client;
 void loop()
 {
+
   if (client)
   {                             // If a new client connects,
     Log.println("New Client."); // print a message out in the serial port
@@ -106,20 +108,8 @@ void loop()
 
             if ((pos = headerHttp.indexOf("Enroll=")) >= 0)
             {
-              if (getInboxText(i) && inboxNumber > 0){
-                if(autoEnroll(messageBuffer))
-                  sprintf(messageBuffer, "Template enrolled on slot: %d", slotID);                                  
-                else{
-                  /* Necessário para retirar o módulo de um communication freeze 
-                   * apos erro de enroll de finger existente!
-                   * Manter sequencia exata!
-                   */
-                  delay(200);
-                  sendCommandReceiveResponse(EnrollCancel);
-                  delay(100);      
-                  moduleReset();                  
-                }               
-              }
+              if (getInboxText(i) && inboxNumber > 0)
+                autoEnroll(messageBuffer);
               else
                 sprintf(messageBuffer, "Must entre registration number > 0 to associate with slotId");
             }
@@ -263,6 +253,6 @@ void loop()
     client.stop();
     Log.println("Client disconnected.");
   }
-  else 
+  else
     client = server.available(); // Listen for incoming clients
 }

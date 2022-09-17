@@ -4,10 +4,6 @@
 #include "fingerprint_device.h"
 #include "fingerprint_commands.h"
 
-const char *ssid = "FingerTests";
-
-const char *password = "123456789";
-
 /// @brief Slot Id info no Finger Lib
 U8Bit slotID;
 const char *errorMessage;
@@ -207,6 +203,7 @@ bool autoEnroll(char *messageBuffer)
           {
             slotID = dataBuffer[2];
             LOGF("Template slot: %d\r\n", slotID);
+            sprintf(messageBuffer, "Template enrolled on slot: %d", slotID);
             errorMessage = EnrollOk;
             return true;
           }
@@ -232,8 +229,8 @@ bool autoEnroll(char *messageBuffer)
       else if (errorCode == COMP_CODE_SAME_ID)
       {
         LOG("Template already exists")
-        sprintf(messageBuffer, "Template already exists");        
-        return false;
+        sprintf(messageBuffer, "Template already exists");
+        break;
       }
       else
       {
@@ -244,26 +241,37 @@ bool autoEnroll(char *messageBuffer)
           if (retry == 0)
           {
             sprintf(messageBuffer, "No Finger detected!!");
-            return false;
+            break;
           }
           delay(100);
         }
         else
         {
           sprintf(messageBuffer, "Enroll Error:  0x%04X\r\n", errorCode);
-          return false;
+          break;
         }
       }
     }
     else
     {
       sprintf(messageBuffer, "TryAgain?  Error:  0x%04X\r\n", errorCode);
-      return false;
+      break;
     }
   }
-  LOG("Timeout Error");
-  errorMessage = TimeoutError;
-  sprintf(messageBuffer, "No Module response");
+
+  if (retry < 0)
+  {
+    LOG("Timeout Error");
+    errorMessage = TimeoutError;
+    sprintf(messageBuffer, "No Module response");
+  }
+  else
+  {
+    delay(200);
+    sendCommandReceiveResponse(EnrollCancel);
+    delay(100);
+    moduleReset();
+  }
   return false;
 }
 

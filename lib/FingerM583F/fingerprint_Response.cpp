@@ -44,8 +44,8 @@ bool FP_protocol_get_frame_head()
     U8Bit header = 0;
     U8Bit headerPos = 0;
     sum = 0;
-    timeout = 50;
-    while (timeout > 0)
+    timeoutFinger = 50;
+    while (timeoutFinger > 0)
     {
         if (FP_device_read_one_byte(&header) == FP_OK)
         {
@@ -53,13 +53,13 @@ bool FP_protocol_get_frame_head()
             // To consider as a valid response
             if (debugRxState == 0)
                 debugRxState = 1;
-            timeout = 10;
+            timeoutFinger = 10;
             if (header == rxHeader[headerPos])
             {
 
                 debugRxState++;
 
-                timeout = 10;
+                timeoutFinger = 10;
                 if (++headerPos == 8)
                 {
                     debugRxState = 30;
@@ -92,13 +92,13 @@ bool FP_protocol_get_frame_head()
         }
         else
         {
-            timeout--;
+            timeoutFinger--;
             delay(10);
             debugRxState += 100;
         }
     }
     errorCode = FP_DEVICE_TIMEOUT_ERROR;
-    LOG("Header Timeout...");
+    LOG("header timeout...");
     return false;
 }
 
@@ -117,7 +117,7 @@ bool receiveCompleteResponse()
 
     // Must now receive at least Check password + Command + error code + Checksum
     sum = 0;
-    timeout = 10;
+    timeoutFinger = 10;
     errorCode = 0;
     while (pos < 11)
     {
@@ -126,12 +126,12 @@ bool receiveCompleteResponse()
             debugRxState--;
             pos++;
             answerDataLength--;
-            timeout = 10;
+            timeoutFinger = 10;
         }
         else
         {
             errorCode = FP_DEVICE_TIMEOUT_ERROR;
-            LOG("Data receive timeout...");
+            LOG("timeout...");
             return false;
         }
     }
@@ -155,7 +155,7 @@ bool receiveCompleteResponse()
     dataBuffer[0] = dataBuffer[10];
 
     pos = 1; // index where to place other data bytes
-    timeout = 10;
+    timeoutFinger = 10;
     debugRxState = -100;
     FP_action_get_errorCode(dataBuffer);
 
