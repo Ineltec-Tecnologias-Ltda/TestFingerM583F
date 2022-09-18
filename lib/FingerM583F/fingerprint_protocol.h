@@ -7,16 +7,16 @@ extern "C"
 #endif
 
 #ifdef ENABLE_DEBUG_FINGER
-#define LOG(X)             \
+#define Log(X)             \
     {                      \
         Serial.println(X); \
     }
 #define LOGINIT(...) Serial.begin(9600);
-#define LOGF(...) Serial.printf(__VA_ARGS__);
+#define LogF(...) Serial.printf(__VA_ARGS__);
 #else
 #define LOGINIT(...) ;
-#define LOG(...) ;
-#define LOGF(...) ;
+#define Log(...) ;
+#define LogF(...) ;
 #endif // DEBUG
 
     typedef enum command_type

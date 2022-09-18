@@ -118,16 +118,16 @@ bool readId()
     debugRxState = -1000;
     /* gets Ascii value module id */
     dataBuffer[answerDataLength] = 0;
-    LOGF("Module Id...: %s\r\n", dataBuffer);
+    LogF("Module Id...: %s\r\n", dataBuffer);
     return true;
   }
-  LOGF("Module Id Error:  0x%04X\r\n", errorCode);
+  LogF("Module Id Error:  0x%04X\r\n", errorCode);
   return false;
 }
 
 bool fingerDetection()
 {
-  LOG("Waiting for Finger...");
+  Log("Waiting for Finger...");
   int timeout = 600;
   fingerInterrupt = false;
   // Lite LED yellow light
@@ -144,7 +144,7 @@ bool fingerDetection()
       if (sendCommandReceiveResponse(FingerIsTouch) == true && errorCode == FP_OK)
         if (dataBuffer[0] == 1)
         { // Finger is placed on module
-          LOG("Finger detected!!");
+          Log("Finger detected!!");
           // Turn LED off
           uint8_t buffer[] = {0, 0, 0, 0, 0};
           ledControl(buffer);
@@ -157,7 +157,7 @@ bool fingerDetection()
   }
 
   errorMessage = NoFinger;
-  LOG(errorMessage);
+  Log(errorMessage);
   return false;
 }
 
@@ -198,11 +198,11 @@ bool autoEnroll(char *messageBuffer)
       {
         if (answerDataLength == 4)
         {
-          LOGF("State: %d    Enroll Progress: %d %\r\n", dataBuffer[0], dataBuffer[3]);
+          LogF("State: %d    Enroll Progress: %d %\r\n", dataBuffer[0], dataBuffer[3]);
           if ((dataBuffer[3] == 100) && (dataBuffer[0] == 0xff))
           {
             slotID = dataBuffer[2];
-            LOGF("Template slot: %d\r\n", slotID);
+            LogF("Template slot: %d\r\n", slotID);
             sprintf(messageBuffer, "Template enrolled on slot: %d", slotID);
             errorMessage = EnrollOk;
             return true;
@@ -217,18 +217,18 @@ bool autoEnroll(char *messageBuffer)
         else
         {
           retry = 7;
-          LOGF("State: %d %\r\n", dataBuffer[0]);
+          LogF("State: %d %\r\n", dataBuffer[0]);
         }
       }
       else if (errorCode == FP_DEVICE_TIMEOUT_ERROR)
       {
-        LOG("Response Timeout...");
+        Log("Response Timeout...");
         delay(100);
         continue;
       }
       else if (errorCode == COMP_CODE_SAME_ID)
       {
-        LOG("Template already exists")
+        Log("Template already exists")
         sprintf(messageBuffer, "Template already exists");
         break;
       }
@@ -237,7 +237,7 @@ bool autoEnroll(char *messageBuffer)
         errorMessage = TryAgain;
         if (errorCode == COMP_CODE_NO_FINGER_DETECT)
         {
-          LOG("No Finger!!!")
+          Log("No Finger!!!")
           if (retry == 0)
           {
             sprintf(messageBuffer, "No Finger detected!!");
@@ -261,7 +261,7 @@ bool autoEnroll(char *messageBuffer)
 
   if (retry < 0)
   {
-    LOG("Timeout Error");
+    Log("Timeout Error");
     errorMessage = TimeoutError;
     sprintf(messageBuffer, "No Module response");
   }
@@ -321,7 +321,7 @@ bool matchTemplate(char *messageBuffer)
             // pass ok == 1)
             uint16_t score = (uint16_t)dataBuffer[2] << 8 + dataBuffer[3];
             slotID = dataBuffer[5]; // slotID;
-            LOGF(" Match ok   Score: %d   SlotId: %d\r\n", score, slotID);
+            LogF(" Match ok   Score: %d   SlotId: %d\r\n", score, slotID);
             return true;
           }
           else
@@ -342,7 +342,7 @@ bool matchTemplate(char *messageBuffer)
     }
   }
   sprintf(messageBuffer, "No Module response");
-  LOG("Timeout Error");
+  Log("Timeout Error");
   errorMessage = TimeoutError;
   errorCode = FP_DEVICE_TIMEOUT_ERROR;
   return false;
@@ -368,7 +368,7 @@ bool RxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
     U8Bit maxFrames = (templateSize / 128);
     if (templateSize % 128 == 0)
       --maxFrames;
-    LOGF("Template size: %d   frames to Rx: %d\r\n", templateSize, maxFrames);
+    LogF("Template size: %d   frames to Rx: %d\r\n", templateSize, maxFrames);
     delay(100);
     if (templateSize > 64)
     {
@@ -389,14 +389,14 @@ bool RxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
         {
           if (frame == 0 || frame == maxFrames) // Print to log first  and  last frames
           {
-            LOG("First or last template frame");
+            Log("First or last template frame");
             i = 2; // template data starts after frame counter
             while (i < answerDataLength && templateSize-- > 0)
             {
-              LOGF("%02X ", dataBuffer[i]);
+              LogF("%02X ", dataBuffer[i]);
               templateRx[index++] = dataBuffer[i++];
             }
-            LOG(" ");
+            Log(" ");
           }
           else
           {
@@ -404,7 +404,7 @@ bool RxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
             memcpy(templateRx + index, dataBuffer + 2, answerDataLength);
             index += answerDataLength;
             templateSize -= 128;
-            LOGF("Received frame %d\r\n", frame);
+            LogF("Received frame %d\r\n", frame);
           }
 
           delay(5);
@@ -413,7 +413,7 @@ bool RxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
         }
         else
         {
-          LOGF("frame: %d   resp:%s error:%04X  answerDataLength : %d\r\n", frame, resp ? "true" : "false", resp ? errorCode : 0, resp ? answerDataLength : 0);
+          LogF("frame: %d   resp:%s error:%04X  answerDataLength : %d\r\n", frame, resp ? "true" : "false", resp ? errorCode : 0, resp ? answerDataLength : 0);
           delay(200);
         }
       }
@@ -459,7 +459,7 @@ bool TxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
     int retry = 4;
 
     int i = 0;
-    LOGF("Template size: %d ,   Sending %d frames to slot %d\r\n", templateRxLen, maxFrames, slotId);
+    LogF("Template size: %d ,   Sending %d frames to slot %d\r\n", templateRxLen, maxFrames, slotId);
     while (frame <= maxFrames && retry-- > 0)
     {
       dataBuffer[6] = 0;
@@ -474,13 +474,13 @@ bool TxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
         if (frame == 0 || frame == maxFrames) // Print to log first  and last frames
         {
           i = 0;
-          LOG("First or last template frame");
+          Log("First or last template frame");
           while (i++ < 128 && templateSizeSaved-- > 0)
           {
-            LOGF("%02X ", templateRx[index]);
+            LogF("%02X ", templateRx[index]);
             index++;
           }
-          LOG(" ");
+          Log(" ");
         }
         else
         {
@@ -488,7 +488,7 @@ bool TxTemplate(int slotId, char *templateRx, U16Bit *templateRxLen, char *messa
           index += 128;
         }
 
-        LOGF("Sent frame %d   ", frame);
+        LogF("Sent frame %d   ", frame);
         frame++;
         totalLen -= 128;
         retry = 5;
@@ -524,17 +524,17 @@ bool getSlotInfos(char *messageBuffer)
   }
   else
   {
-    LOGF("%d Templates on Module", dataBuffer[1]);
+    LogF("%d Templates on Module", dataBuffer[1]);
     if (sendCommandReceiveResponse(GetAllSlotStatus) && errorCode == FP_OK && answerDataLength > 0)
     {
       int i = 2;
-      LOG("Slot Map:");
+      Log("Slot Map:");
       U8Bit pos = 0, j = 0, k = 0;
       bool freeSlots = dataBuffer[1] < 100;
       while (answerDataLength-- > 0)
       {
         pos = dataBuffer[i++];
-        LOGF("%02X ", pos);
+        LogF("%02X ", pos);
         if (freeSlots)
         {
           for (k = 0; k < 8; k++)
@@ -543,7 +543,7 @@ bool getSlotInfos(char *messageBuffer)
             {
               slotID = j;
               freeSlots = false;
-              LOGF("First Free Slot: %d", j);
+              LogF("First Free Slot: %d", j);
               break;
             }
             pos = pos >> 1;
@@ -551,7 +551,7 @@ bool getSlotInfos(char *messageBuffer)
           }
         }
       }
-      LOG("  ");
+      Log("  ");
     }
     return true;
   }

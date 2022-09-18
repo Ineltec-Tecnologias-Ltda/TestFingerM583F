@@ -14,7 +14,7 @@ U8Bit txHeader[] = {0xF1, 0x1F, 0xE2, 0x2E, 0xB6, 0x6B, 0xA8, 0x8A, 0, 0};
 
 void fingerModuleInterrupt()
 {
-	// LOG("Finger sensor...");
+	// Log("Finger sensor...");
 	fingerInterrupt = true;
 }
 

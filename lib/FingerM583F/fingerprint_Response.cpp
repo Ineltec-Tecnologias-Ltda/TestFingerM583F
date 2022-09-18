@@ -98,7 +98,7 @@ bool FP_protocol_get_frame_head()
         }
     }
     errorCode = FP_DEVICE_TIMEOUT_ERROR;
-    LOG("header timeout...");
+    Log("header timeout...");
     return false;
 }
 
@@ -131,7 +131,7 @@ bool receiveCompleteResponse()
         else
         {
             errorCode = FP_DEVICE_TIMEOUT_ERROR;
-            LOG("timeout...");
+            Log("timeout...");
             return false;
         }
     }
@@ -140,12 +140,12 @@ bool receiveCompleteResponse()
         if ((U8Bit)((~sum) + 1) == 0)
         {
             FP_action_get_errorCode(dataBuffer);
-            LOGF(" Cmd response:0x%02X, no extras\r\n", rtxCommandLow);
+            LogF(" Cmd response:0x%02X, no extras\r\n", rtxCommandLow);
             return true; // Valid response with no extra data bytes
         }
 
         errorCode = FP_PROTOCOL_DATA_CHECKSUM_ERROR;
-        LOG(" CHECKSUM ERROR\r\n");
+        Log(" CHECKSUM ERROR\r\n");
 
         return false;
     }
@@ -175,12 +175,12 @@ bool receiveCompleteResponse()
     if (((U8Bit)((~sum) + 1)) == 0)
     {
         debugRxState = -200;
-        LOGF(" Cmd response:0x%02X errorCode: 0x%04X    #bytes=%d\r\n", rtxCommandLow, errorCode, answerDataLength);
+        LogF(" Cmd response:0x%02X errorCode: 0x%04X    #bytes=%d\r\n", rtxCommandLow, errorCode, answerDataLength);
         return true;
     }
 
     errorCode = FP_PROTOCOL_DATA_CHECKSUM_ERROR;
-    LOGF(" CHECKSUM ERROR...#bytes=%d\r\n", answerDataLength);
+    LogF(" CHECKSUM ERROR...#bytes=%d\r\n", answerDataLength);
 
     debugRxState = -256;
     return false;
