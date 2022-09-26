@@ -17,6 +17,7 @@ const char *NoMatch = "No Match";
 
 /// Command codes and extra data size
 /// @see users manual Command set summary pages 9-12
+Command Sleep{cmd_system, sys_sleep, 1};
 Command AutoEnroll{cmd_fingerprint, fp_auto_enroll, 4};
 Command HeartBeat{cmd_maintenance, maintenance_heart_beat, 0};
 Command LedControl{cmd_system, sys_set_led, 5}; // @see users manual page 45
@@ -130,8 +131,8 @@ bool fingerDetection()
   Log("Waiting for Finger...");
   int timeout = 600;
   fingerInterrupt = false;
-  // Lite LED yellow light
-  uint8_t buffer[] = {3, 4, 20, 20, 5};
+
+  uint8_t buffer[] = {3, 3, 100, 100, 2};
   ledControl(buffer);
   while (timeout-- > 0)
   {
@@ -145,27 +146,30 @@ bool fingerDetection()
         if (dataBuffer[0] == 1)
         { // Finger is placed on module
           Log("Finger detected!!");
-          // Turn LED off
-          uint8_t buffer[] = {0, 0, 0, 0, 0};
-          ledControl(buffer);
-          delay(30);
           return true;
         }
       delay(30);
     }
     vTaskDelay(10);
   }
+  // Turn LED off
+  uint8_t buffer1[] = {0, 0, 0, 0, 0};
+  ledControl(buffer1);
+  delay(30);
 
   errorMessage = NoFinger;
+  errorCode = COMP_CODE_NO_FINGER_DETECT;
   Log(errorMessage);
   return false;
 }
 
 /// @brief Returns true if match ok
 // @see Users Manual pages 22 and 23
+/// @param messageBuffer Buffer for feedback message to user
+/// @param slot  if  0xFFFF ,will be automatically assigned by the system
 /// @return if true "slotID" is where the saved finger template was saved inside module
 /// if false errorCode and  errorMessage are set
-bool autoEnroll(char *messageBuffer)
+bool autoEnroll(char *messageBuffer, U16Bit slot)
 {
   if (!fingerDetection())
   {
@@ -184,8 +188,8 @@ bool autoEnroll(char *messageBuffer)
   dataBuffer[7] = 3;
 
   // enrollPara.slotID = 0xFFFF ,will be automatically assigned by the system
-  dataBuffer[8] = 0xff;
-  dataBuffer[9] = 0xff;
+  dataBuffer[8] = slot >> 8;
+  dataBuffer[9] = (U8Bit)slot;
   writeBufferPlusCheckSum(AutoEnroll[2]);
 
   int8_t retry = 7;
@@ -229,7 +233,7 @@ bool autoEnroll(char *messageBuffer)
       else if (errorCode == COMP_CODE_SAME_ID)
       {
         Log("Template already exists")
-        sprintf(messageBuffer, "Template already exists");
+            sprintf(messageBuffer, "Template already exists");
         break;
       }
       else
@@ -237,10 +241,9 @@ bool autoEnroll(char *messageBuffer)
         errorMessage = TryAgain;
         if (errorCode == COMP_CODE_NO_FINGER_DETECT)
         {
-          Log("No Finger!!!")
-          if (retry == 0)
+          Log(NoFinger) if (retry == 0)
           {
-            sprintf(messageBuffer, "No Finger detected!!");
+            sprintf(messageBuffer, NoFinger);
             break;
           }
           delay(100);
@@ -283,7 +286,7 @@ bool matchTemplate(char *messageBuffer)
   errorMessage = TryAgain;
   if (!fingerDetection())
   {
-    sprintf(messageBuffer, "No Finger detected!!");
+    sprintf(messageBuffer, NoFinger);
     return false;
   }
 
@@ -517,41 +520,36 @@ bool getSlotInfos(char *messageBuffer)
     return false;
   }
 
-  if (dataBuffer[1] == 0)
+  LogF("%d Templates on Module\r\n", dataBuffer[1]);
+  if (dataBuffer[1] == 100)
   {
     sprintf(messageBuffer, "No templates on Finger Module");
     return false;
   }
   else
   {
-    LogF("%d Templates on Module", dataBuffer[1]);
     if (sendCommandReceiveResponse(GetAllSlotStatus) && errorCode == FP_OK && answerDataLength > 0)
     {
       int i = 2;
       Log("Slot Map:");
       U8Bit pos = 0, j = 0, k = 0;
-      bool freeSlots = dataBuffer[1] < 100;
       while (answerDataLength-- > 0)
       {
         pos = dataBuffer[i++];
         LogF("%02X ", pos);
-        if (freeSlots)
+        for (k = 0; k < 8; k++)
         {
-          for (k = 0; k < 8; k++)
+          if ((pos & 1) == 0)
           {
-            if ((pos & 1) == 0)
-            {
-              slotID = j;
-              freeSlots = false;
-              LogF("First Free Slot: %d", j);
-              break;
-            }
-            pos = pos >> 1;
-            j++;
+            slotID = j;
+            LogF("\r\nFirst Free Slot: %d\r\n", j);
+            return true;
           }
+          pos = pos >> 1;
+          j++;
         }
       }
-      Log("  ");
+
     }
     return true;
   }

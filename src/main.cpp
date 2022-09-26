@@ -109,7 +109,7 @@ void loop()
             if ((pos = headerHttp.indexOf("Enroll=")) >= 0)
             {
               if (getInboxText(i) && inboxNumber > 0)
-                autoEnroll(messageBuffer);
+                autoEnroll(messageBuffer,0xffff);
               else
                 sprintf(messageBuffer, "Must entre registration number > 0 to associate with slotId");
             }
