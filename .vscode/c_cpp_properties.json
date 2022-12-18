@@ -355,7 +355,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=60104",
+                "PLATFORMIO=60105",
                 "ARDUINO_ESP32C3_DEV",
                 "ENABLE_DEBUG_FINGER=1",
                 "FINGER_UART_RX=4",

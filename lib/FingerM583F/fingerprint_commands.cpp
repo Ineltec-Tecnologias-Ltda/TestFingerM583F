@@ -100,6 +100,7 @@ bool moduleReset()
   commFingerInit(57600);
   if (sendCommandReceiveResponse(ModuleReset))
   {
+    Log("Module reseted!!!");
     // Flashing red LED light
     uint8_t buffer[] = {4, 2, 30, 10, 1};
     ledControl(buffer);
@@ -182,19 +183,21 @@ bool autoEnroll(char *messageBuffer, U16Bit slot)
   sendCommandHeader(AutoEnroll, AutoEnroll[2]);
 
   // enrollPara.enroll_mode = 0x01 will indicate that user must lift finger and press again during enrollment
-  dataBuffer[6] = 0;
+  dataBuffer[6] = 1;
 
   // enrollPara.times is the number of presses (can be set to 1~6 times)
-  dataBuffer[7] = 3;
+  dataBuffer[7] = 4;
 
   // enrollPara.slotID = 0xFFFF ,will be automatically assigned by the system
   dataBuffer[8] = slot >> 8;
   dataBuffer[9] = (U8Bit)slot;
   writeBufferPlusCheckSum(AutoEnroll[2]);
 
-  int8_t retry = 7;
+  ulong tmp = millis();
 
-  while (retry-- > 0)
+  Log("enroll...");
+  bool timeoutError = true;
+  while (millis() - tmp < (ulong)8000) //(retry-- > 0)
   {
     if (receiveCompleteResponse())
     {
@@ -213,16 +216,17 @@ bool autoEnroll(char *messageBuffer, U16Bit slot)
           }
           else
           {
-            // TODO implement callback to show Enroll Progress!!!
             errorMessage = Enrolling;
+            if (dataBuffer[3] < 100)
+            {
+              // TODO implement callback to show Enroll Progress!!!
+              Log("Reposition Finger!!");
+            }
             delay(100);
           }
         }
         else
-        {
-          retry = 7;
           LogF("State: %d %\r\n", dataBuffer[0]);
-        }
       }
       else if (errorCode == FP_DEVICE_TIMEOUT_ERROR)
       {
@@ -234,6 +238,7 @@ bool autoEnroll(char *messageBuffer, U16Bit slot)
       {
         Log("Template already exists")
             sprintf(messageBuffer, "Template already exists");
+        timeoutError = false;
         break;
       }
       else
@@ -241,40 +246,37 @@ bool autoEnroll(char *messageBuffer, U16Bit slot)
         errorMessage = TryAgain;
         if (errorCode == COMP_CODE_NO_FINGER_DETECT)
         {
-          Log(NoFinger) if (retry == 0)
-          {
-            sprintf(messageBuffer, NoFinger);
-            break;
-          }
+          Log(NoFinger);
           delay(100);
         }
         else
         {
           sprintf(messageBuffer, "Enroll Error:  0x%04X\r\n", errorCode);
+          timeoutError = false;
           break;
         }
       }
     }
     else
     {
-      sprintf(messageBuffer, "TryAgain?  Error:  0x%04X\r\n", errorCode);
-      break;
+      // TODO implement callback to show Enroll Progress!!!
+      Log("Place Finger!!");
+      delay(100);
     }
   }
 
-  if (retry < 0)
+  delay(200);
+  sendCommandReceiveResponse(EnrollCancel);
+  delay(100);
+  moduleReset();
+
+  if (timeoutError)
   {
     Log("Timeout Error");
     errorMessage = TimeoutError;
     sprintf(messageBuffer, "No Module response");
   }
-  else
-  {
-    delay(200);
-    sendCommandReceiveResponse(EnrollCancel);
-    delay(100);
-    moduleReset();
-  }
+
   return false;
 }
 
@@ -520,17 +522,19 @@ bool getSlotInfos(char *messageBuffer)
     return false;
   }
 
-  LogF("%d Templates on Module\r\n", dataBuffer[1]);
-  if (dataBuffer[1] == 100)
+  U8Bit templates = dataBuffer[1];
+  if (templates == 100)
   {
-    sprintf(messageBuffer, "No templates on Finger Module");
+    sprintf(messageBuffer, "No free template slots on Finger Module");
     return false;
   }
   else
   {
+    delay(100);
     if (sendCommandReceiveResponse(GetAllSlotStatus) && errorCode == FP_OK && answerDataLength > 0)
     {
       int i = 2;
+      LogF("%d Templates on Module\r\n", templates);
       Log("Slot Map:");
       U8Bit pos = 0, j = 0, k = 0;
       while (answerDataLength-- > 0)
@@ -549,8 +553,7 @@ bool getSlotInfos(char *messageBuffer)
           j++;
         }
       }
-
     }
-    return true;
+    return false;
   }
 }

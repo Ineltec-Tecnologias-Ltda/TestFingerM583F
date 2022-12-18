@@ -140,7 +140,7 @@ bool receiveCompleteResponse()
         if ((U8Bit)((~sum) + 1) == 0)
         {
             FP_action_get_errorCode(dataBuffer);
-            LogF(" Cmd response:0x%02X, no extras\r\n", rtxCommandLow);
+            LogF(" Cmd response:0x%02X, no extras, errorCode: 0x%04X,\r\n", rtxCommandLow,errorCode);
             return true; // Valid response with no extra data bytes
         }
 
