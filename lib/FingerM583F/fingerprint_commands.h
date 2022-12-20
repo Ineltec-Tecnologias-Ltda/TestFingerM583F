@@ -17,7 +17,7 @@ extern bool receiveCompleteResponse();
 
 bool heartbeat();
 bool readId();
-bool autoEnroll(char *messageBuffer,U16Bit slot);
+bool autoEnroll(char *messageBuffer, U16Bit slot, bool cancel, void (*callBack)(int stage));
 bool matchTemplate( char *messageBuffer);
 bool ledControl(uint8_t *params);
 bool moduleReset();

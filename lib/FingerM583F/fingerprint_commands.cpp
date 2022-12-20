@@ -168,9 +168,11 @@ bool fingerDetection()
 // @see Users Manual pages 22 and 23
 /// @param messageBuffer Buffer for feedback message to user
 /// @param slot  if  0xFFFF ,will be automatically assigned by the system
+/// @param cancel to to stop enroll
+/// @param callBack to report enroll progression
 /// @return if true "slotID" is where the saved finger template was saved inside module
 /// if false errorCode and  errorMessage are set
-bool autoEnroll(char *messageBuffer, U16Bit slot)
+bool autoEnroll(char *messageBuffer, U16Bit slot, bool cancel, void (*callBack)(int stage))
 {
   if (!fingerDetection())
   {
@@ -196,9 +198,11 @@ bool autoEnroll(char *messageBuffer, U16Bit slot)
   ulong tmp = millis();
 
   Log("enroll...");
-  bool timeoutError = true;
-  while (millis() - tmp < (ulong)8000) //(retry-- > 0)
+  bool timeoutError = false;
+  while (!cancel && !timeoutError)
   {
+    if (millis() - tmp >= (ulong)8000)
+      timeoutError = true;
     if (receiveCompleteResponse())
     {
       if (errorCode == 0)
@@ -212,16 +216,16 @@ bool autoEnroll(char *messageBuffer, U16Bit slot)
             LogF("Template slot: %d\r\n", slotID);
             sprintf(messageBuffer, "Template enrolled on slot: %d", slotID);
             errorMessage = EnrollOk;
+            delay(100);
+            moduleReset();
             return true;
           }
           else
           {
             errorMessage = Enrolling;
-            if (dataBuffer[3] < 100)
-            {
-              // TODO implement callback to show Enroll Progress!!!
-              Log("Reposition Finger!!");
-            }
+            // callback to show Enroll Progress!!!
+            callBack(dataBuffer[3]);
+            Log("Reposition Finger!!");
             delay(100);
           }
         }
@@ -274,7 +278,7 @@ bool autoEnroll(char *messageBuffer, U16Bit slot)
   {
     Log("Timeout Error");
     errorMessage = TimeoutError;
-    sprintf(messageBuffer, "No Module response");
+    sprintf(messageBuffer, "Timeout Error");
   }
 
   return false;

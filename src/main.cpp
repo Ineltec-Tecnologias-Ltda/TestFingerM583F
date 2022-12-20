@@ -68,7 +68,19 @@ bool getInboxText(int maxSize)
   return false;
 }
 
+void callBackAutoEnroll(int stage)
+{
+  if (stage < 100)
+  {
+    sprintf(messageBuffer, "Enroll Progress: %d%% ", stage);
+    Log.printf(messageBuffer);
+  }
+  else
+    Log.print("Enroll ok, just processing template");
+}
+
 WiFiClient client;
+bool stopEnroll= false; //action on other thread
 void loop()
 {
 
@@ -109,7 +121,7 @@ void loop()
             if ((pos = headerHttp.indexOf("Enroll=")) >= 0)
             {
               if (getInboxText(i) && inboxNumber > 0)
-                autoEnroll(messageBuffer,0xffff);
+                autoEnroll(messageBuffer, 0xffff,stopEnroll, &callBackAutoEnroll);
               else
                 sprintf(messageBuffer, "Must entre registration number > 0 to associate with slotId");
             }
@@ -146,12 +158,13 @@ void loop()
             else if (headerHttp.indexOf("Match") >= 0)
             {
               if (getSlotInfos(messageBuffer))
-                if (matchTemplate(messageBuffer)){
-                  sprintf(messageBuffer, "Match on slot: %d", slotID);    
+                if (matchTemplate(messageBuffer))
+                {
+                  sprintf(messageBuffer, "Match on slot: %d", slotID);
                   // Flashing red Green light
                   uint8_t buffer[] = {4, 1, 30, 10, 1};
                   ledControl(buffer);
-                }          
+                }
             }
 
             else if (headerHttp.indexOf("Heartbeat") >= 0)
