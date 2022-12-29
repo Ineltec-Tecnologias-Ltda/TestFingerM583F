@@ -38,6 +38,14 @@ void commFingerInit(unsigned long baud)
 	delay(100);
 }
 
+/// @brief Wait 100ms for char
+void waitCharAvailable(){
+	int tout = 100;
+	while (tout-- > 0){
+		if (fingerDevice.available()) return;
+		delay(1);
+	}
+}
 /// @brief /* read one byte and adds to checksum*/
 /// @param data  pointer to received data byte
 /// @return FP_OK or FP_DEVICE_timeoutFinger_ERROR

@@ -210,23 +210,27 @@ bool autoEnroll(char *messageBuffer, U16Bit slot, bool cancel, void (*callBack)(
         if (answerDataLength == 4)
         {
           LogF("State: %d    Enroll Progress: %d %\r\n", dataBuffer[0], dataBuffer[3]);
-          if ((dataBuffer[3] == 100) && (dataBuffer[0] == 0xff))
+          if (dataBuffer[3] == 100)
           {
-            slotID = dataBuffer[2];
-            LogF("Template slot: %d\r\n", slotID);
-            sprintf(messageBuffer, "Template enrolled on slot: %d", slotID);
-            errorMessage = EnrollOk;
-            delay(100);
-            moduleReset();
-            return true;
+            if (dataBuffer[0] == 0xff)
+            {
+              slotID = dataBuffer[2];
+              LogF("Template slot: %d\r\n", slotID);
+              sprintf(messageBuffer, "Template enrolled on slot: %d", slotID);
+              errorMessage = EnrollOk;
+              delay(100);
+              moduleReset();
+              return true;
+            }
+            else
+              waitCharAvailable();
           }
           else
           {
             errorMessage = Enrolling;
-            // callback to show Enroll Progress!!!
-            callBack(dataBuffer[3]);
             Log("Reposition Finger!!");
-            delay(100);
+            callBack(dataBuffer[3]);
+            waitCharAvailable();
           }
         }
         else
